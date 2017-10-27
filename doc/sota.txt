@@ -1,0 +1,81 @@
+SotA - State of the Art
+
+Roadmap:
+0.7	Renamed to SOTA
+0.7.1:
+- First tested release by Sota
+
+0.7.2:
+- Fixed UNDO transaction
+- People can now be removed from raid queue
+
+0.8	Add Config screen for Boss/Instance DKP, configure bid timer
+0.8.0:
+- Added 3 config panes: Auction, Boss DKP, Misc DKP
+0.8.1:
+- Added support for minimum DKP (using boss dkp)
+- Added zone detection (missing a few ones, like Cthun and KelThuzad)
+0.8.2:
+- Added support for "/sota share" which shares the current Boss DKP across raid.
+0.9	Add Dashboard
+
+
+Known issues:
+- Check the Public/Officer note status; it might be reversed!!
+- And could you change that when someone whispers for queue like "queue healer" it wouldnt matter if the first letter is capital Q?
+- Seems sync of commands is somewhat broken? Test ...
+- Removal of bids does not reset minimum bid
+New features:
+- Add OS option ("/w sota os 200" to do an OS bid)
+- "/sota queue" must return more detailed queue information (3 tanks, 2 healers in queue)
+
+
+
+
+
+Wishlist:
+
+- RaidQueue: (Janitor) Add a list of (lvl 60) players not in raid
+- AuctionUI: Add a CLOSE button, available for non-ML ("Spectators")
+
+
+
+
+
+
+
+
+
+Commands:
+
+Command:
+/auction [item]
+/startauction [item]
+<context menu Start Auction>
+Purpose:
+Opens the auction interface and starts the auctionning itself.
+
+
+Command:
+/stopauction
+Force a stop (Cancel) of the current auction.
+Purpose:
+Same as pressing <Cancel> in the auction UI.
+
+
+Command:
+/beginraid
+Purpose:
+Begins a Raid session. This adds context menus etc.
+May initialize zero sum dkp later.
+
+
+Command:
+/endraid
+Purpose:
+Ends a raid session. This removes context menus etc.
+May finalize zero sum dkp later.
+
+
+todo: add queue handling
+

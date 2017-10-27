@@ -1,0 +1,129 @@
+SotA - State of the Art
+
+Roadmap:
+0.7	Renamed to SOTA
+0.7.1:
+- First tested release by Sota
+0.7.2:
+- Bugfix: Fixed UNDO transaction
+- Bugfix: People can now be removed from raid queue
+
+0.8	Add Config screen for Boss/Instance DKP, configure bid timer
+0.8.0:
+- Added 3 config panes: Auction, Boss DKP, Misc DKP
+0.8.1:
+- Added support for minimum DKP (using boss dkp)
+- Added zone detection (missing a few ones, like Cthun and KelThuzad)
+0.8.2:
+- Added support for "/sota share" which shares the current Boss DKP across raid.
+- Updated: Zone check rewritten. Build-in events was not reliable.
+- Updated: Minor design changes to SOTA messages.
+- Bugfix: Public/Officer note status reversed, fixed
+- Bugfix: Removal of bids does not reset minimum bid, fixed
+- Bugfix: Whispers for queue like "queue healer" is case sensitive
+0.8.3:
+- Updated: "/sota queue" now return more detailed queue information (3 tanks, 2 healers in queue)
+0.8.4:
+- Updated: Log panes is now in one frame (for movement)
+- Fixed Blackwing Lair detection
+0.8.5:
+- Added OS/MS bidding: "/w sota os 200" to do an OS bid. "os min" and "os max" works too.
+0.8.6:
+- Fixed World Boss locations (Duskwood, Hinterlands and Blasted Lands added)
+- Queue screen not synced - fixed
+- A whisper is now sent to a player when he is kicked from raid queue.
+- Now writing name of world boss after zone name; e.g. "Blasted Lands (Lord Kazzak)"
+- Bugfix: Non-promoted can still give DKP, fixed (a message is displayed instead)
+0.9	Add Dashboard
+0.9.0:
+- Added Dashboard: Raid Queue, Share DKP, Transaction Log and Configuration
+- Added name of current master to Dashboard
+- Hide dashboard when not in raid (and not promoted?)
+- Improved Master handling; if no master is currently set, all will listen for "!" commands.
+0.9.1:
+- Added configuration option to hide (disable) Dashboard
+- Added tooltips on Dashboard
+- Update: Rearranged Dashboard icons.
+- Removed Kel'Thuzad and C'Thun from Boss DKP list; unable to detect bosses using locations.
+- Bugfix: Transaction Log pane was named Raid Queue - fixed
+- Bugfix: SOTA Master status is kept even player is not in raid or online - fixed.
+- Bugfix: Minimum bid only takes first bid into account - fixed.
+0.9.2:
+- Added zone check for people in queue (configurable option)
+0.9.3:
+- Added: New command: "/sota addqueue <name> <role>" to manually add people to raid queue.
+- Bugfix: Raid Queue does not refresh itself correct after inviting people from it - fixed.
+- Bugfix: "!Queue" command returns multiple whispers when more are promoted - fixed.
+- Bugfix: "/gdversion" triggers SOTA version info as well, which spams local UI - fixed.
+0.9.4:
+- Bugfix: Decay does only work when in a raid - fixed.
+1.0.0.RC1:
+- Bugfix: Queue screen close button places one pixel too low (!!)
+- Bugfix: Some local messages used "echo" instead of "gEcho", causing logo to miss - fixed.
+- Bugfix: Decay percent syntax check didn't work properbly - fixed!
+1.0.0.RC2:
+- Added: Help texts
+- Bugfix: "!Leave" does not write any message back when completed - fixed!
+1.0.0.RC3:
+- Updated Help texts slightly.
+1.0.0:
+- Release 1.0.0!
+1.0.1:
+- Bugfix: getTimestamp() depended on the GuildDKP addon - fixed!
+
+
+
+Known issues:
+- Boss DKP values are not persisted (unable to reproduce)
+New features:
+- Auction contains a "Minimum Bid" field (needs a LAUCH button also?)
+- Command for outsiders to see queue (without having the addon)
+- Make whispers configurable
+Wishlist:
+- RaidQueue: (Janitor) Add a list of (lvl 60) players not in raid
+- AuctionUI: Add a CLOSE button, available for non-ML ("Spectators")
+- context menu!
+
+
+
+other stuff:
+- Zverka! is needed
+- PriestPower! too ... (GFK addon! - Monet)
+
+
+
+
+
+Commands:
+
+Command:
+/auction [item]
+/startauction [item]
+<context menu Start Auction>
+Purpose:
+Opens the auction interface and starts the auctionning itself.
+
+
+Command:
+/stopauction
+Force a stop (Cancel) of the current auction.
+Purpose:
+Same as pressing <Cancel> in the auction UI.
+
+
+Command:
+/beginraid
+Purpose:
+Begins a Raid session. This adds context menus etc.
+May initialize zero sum dkp later.
+
+
+Command:
+/endraid
+Purpose:
+Ends a raid session. This removes context menus etc.
+May finalize zero sum dkp later.
+
+
+todo: add queue handling
+

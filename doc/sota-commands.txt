@@ -1,0 +1,83 @@
+
+SotA - State of the Art
+=======================
+
+- The next step in DKP!
+
+
+What is SotA?
+SotA is an addon to manage DKP for the guild. The DKP for each player is stored in the public guild notes or officer notes, and can thereby be exported via addons such as RPGO_GuildProfiler.
+
+The overall functionality of SotA can be divided into four main categories: DKP handling, Item Auctions, Raid Queue and Logging.
+
+Read the ReadMe.txt for full command line interface.
+Here are the most important ones:
+
+DKP Commands
+/sota dkp [player]
+Show how much DKP [player] currently have. If [player] is left out, the current player is used.
+
+/sota class [class]
+Show top 10 DKP for [class]. If [class] is left out, the class of the current player is used.
+
+/sota +<n> <player>
+Add <n> DKP to <player>.
+
+/sota -<n> <player>
+Subtract <n> DKP from <player>.
+
+/sota -<n>% <player>
+Subtract <n> percent DKP from <player>. The minus sign is optional.
+
+/sota raid +<n>
+Add <n> DKP to all players in the raid (including the raid queue).
+
+/sota raid -<n>
+Subtract <n> DKP from all players in the raid (including the raid queue).
+
+/sota range +<n>
+Add <n> DKP tp all online players in range, and all online players in raid queue (no range check). The plus sign is optional.
+
+/sota share +<n>
+Share <n> DKP across all raid players. Online players in raid queue will be given same amount.
+
+/sota decay <n>%
+Remove <n> percent DKP from ALL players in the guild.
+
+
+
+Queue Commands
+The queue commands sometimes uses <role> as parameter. <role> can be one of
+the following: "tank", "melee", "ranged" or "healer".
+
+/sota queue
+Display current queue status: How many players are in queue of each role.
+This command can also be triggered by typing "!queue" in guild chat.
+
+/sota queue <role>
+Put yourself in queue as <role>.
+Note: you cannot put others into the queue this way - for that, use  "/sota addqueue" below.
+
+/sota addqueue <player> <role>
+Add <player> to the raid queue as <role>.
+
+/sota leave
+Leave the raid queue. Can also be done from gchat: "!leave"
+
+
+
+Auction Interface:
+<item> is here the Item link, which can be set by shift-clicking the item.
+
+/sota <item>
+Starts an auction for <item>.
+
+/sota bid <n>
+Bid <n> DKP for the item currently being auctioned.
+If <n> is "min", the minimum allowed bid is used.
+If <n> is "max", the maximum bid (All out) is used.
+This command can be used from the Raid (or Guild) chat witn "!bid <n>".
+
+/sota help
+Show HELP page (more or less this page!)
+

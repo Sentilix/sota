@@ -1,0 +1,1625 @@
+﻿<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Script file="AuctionUI.lua" />
+
+	<!-- SotA Window Frame -->
+	<Frame name="SOTAFrame" parent="UIParent" toplevel="true" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="384" y="512" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset x="312" y="-124" />
+			</Anchor>
+		</Anchors>
+
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture file="Interface\Spellbook\Spellbook-Icon">
+					<Size>
+						<AbsDimension x="58" y="58"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="10" y="-8"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture name="BarTopLeft" file="Interface\ClassTrainerFrame\UI-ClassTrainer-TopLeft">
+					<Size>
+						<AbsDimension x="256" y="256"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT"/>
+					</Anchors>
+				</Texture>
+				<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-TopRight">
+					<Size>
+						<AbsDimension x="128" y="256"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPRIGHT"/>
+					</Anchors>
+				</Texture>
+				<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-BotLeft">
+					<Size>
+						<AbsDimension x="256" y="256"/>
+					</Size>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT"/>
+					</Anchors>
+				</Texture>
+				<Texture file="Interface\ClassTrainerFrame\UI-ClassTrainer-BotRight">
+					<Size>
+						<AbsDimension x="128" y="256"/>
+					</Size>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+
+		<Scripts>
+			<OnLoad>
+				this:SetMovable(true)
+				this:SetUserPlaced(true)
+				this:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnDragStart>
+				this:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				this:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
+	</Frame>
+
+	<!-- template for Bid entries -->
+	<Button name="SOTA_BidTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="420" y="16"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Player name -->
+				<FontString name="$parentBidder" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="100" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="4" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<Color r="1" g="1" b="1" />
+				</FontString>
+				<!-- Player bid -->
+				<FontString name="$parentBid" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentBidder"/>
+					</Anchors>
+				</FontString>
+				<!-- Guild rank -->
+				<FontString name="$parentRank" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="220" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentBid"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnBidClick(this)
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+			<Color r="0.0" g="0.0" b="0.5" a="0.5"/>
+		</NormalTexture>
+	</Button>
+
+	<!-- template for a Player entry in the RaidQueue -->
+	<Button name="SOTA_PlayerTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="150" y="16"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Player name -->
+				<FontString name="$parentName" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="70" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="4" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<Color r="1" g="1" b="1" />
+				</FontString>
+				<!-- Guild rank -->
+				<FontString name="$parentRank" justifyH="RIGHT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="74" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentName"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnQueuedPlayerClick(this, arg1)
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:RegisterForClicks(
+				"LeftButtonDown",
+				"RightButtonDown"
+				)
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+		</NormalTexture>
+	</Button>
+
+	<!-- template for a Log entry in the Transaction UI -->
+	<Button name="SOTA_LogTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="320" y="16"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Timestamp -->
+				<FontString name="$parentTime" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="64" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="4" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+
+				<!-- + / - icon -->
+				<Texture name="$parentIcon" file="">
+					<Size>
+						<AbsDimension x="16" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentTime"/>
+					</Anchors>
+				</Texture>
+				
+				<!-- Transaction ID -->
+				<FontString name="$parentTID" justifyH="RIGHT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="20" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentIcon"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentFiller1" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="4" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentTID"/>
+					</Anchors>
+				</FontString>
+
+				<!-- Player name -->
+				<FontString name="$parentName" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="90" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentFiller1"/>
+					</Anchors>
+				</FontString>
+				<!-- Command type value -->
+				<FontString name="$parentCommand" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="70" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentName"/>
+					</Anchors>
+				</FontString>
+				<!-- DKP value -->
+				<FontString name="$parentDKP" justifyH="RIGHT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="50" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentCommand"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnTransactionLogClick(this)
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+			<Color r="0.0" g="0.0" b="0.0" a="0.0"/>
+		</NormalTexture>
+	</Button>
+
+	<!-- template for a Player entry in the Transaction UI (4 columns) -->
+	<Button name="SOTA_FourPlayerTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="80" y="16"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Player, 1 -->
+				<FontString name="$parentPlayer1" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="4" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<!-- Player, 2 -->
+				<FontString name="$parentPlayer2" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentPlayer1"/>
+					</Anchors>
+				</FontString>
+				<!-- Player, 3 -->
+				<FontString name="$parentPlayer3" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentPlayer2"/>
+					</Anchors>
+				</FontString>
+				<!-- Player, 4 -->
+				<FontString name="$parentPlayer4" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentPlayer3"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnTransactionLogDetailPlayer(this);
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+		</NormalTexture>
+	</Button>
+
+	<!-- template for a Player entry in the Transaction UI (1 column) -->
+	<Button name="SOTA_PlayerLogTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="80" y="16"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Player, 1 -->
+				<FontString name="$parentPlayerButton" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnTransactionLogDetailPlayer(this);
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+		</NormalTexture>
+	</Button>
+
+	<!-- Configuration frame template -->
+	<Frame name="SOTA_ConfigurationFrameTemplate" parent="UIParent" toplevel="true" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="384" y="512" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset x="312" y="-124" />
+			</Anchor>
+		</Anchors>
+
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture file="Interface\Spellbook\Spellbook-Icon">
+					<Size>
+						<AbsDimension x="58" y="58"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="10" y="-8"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture name="BarTopLeft" file="Interface\Spellbook\UI-SpellbookPanel-TopLeft">
+					<Size>
+						<AbsDimension x="256" y="256"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT"/>
+					</Anchors>
+				</Texture>
+				<Texture file="Interface\Spellbook\UI-SpellbookPanel-TopRight">
+					<Size>
+						<AbsDimension x="128" y="256"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPRIGHT"/>
+					</Anchors>
+				</Texture>
+				<Texture file="Interface\Spellbook\UI-SpellbookPanel-BotLeft">
+					<Size>
+						<AbsDimension x="256" y="256"/>
+					</Size>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT"/>
+					</Anchors>
+				</Texture>
+				<Texture file="Interface\Spellbook\UI-SpellbookPanel-BotRight">
+					<Size>
+						<AbsDimension x="128" y="256"/>
+					</Size>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT"/>
+					</Anchors>
+				</Texture>
+				<FontString name="$parentTitle" inherits="GameFontNormal" text="SotA Options">
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="-6" y="233"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer>
+				<FontString name="$parentTopText" inherits="GameFontNormal" font="Fonts\FRIZQT__.TTF" text="">
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="-90"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<FontHeight val="16" />
+				</FontString>
+			</Layer>
+		</Layers>
+
+		<Frames>
+			<!-- Top right corner close button -->
+			<Button name="$parentTopCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="324" y="-9" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_CloseConfigurationUI();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Lower close button -->
+			<Button name="$parentCloseButton" inherits="UIPanelButtonTemplate" text="Close">
+				<Size>
+					<AbsDimension x="100" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="134" y="-402" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_CloseConfigurationUI();
+					</OnClick>
+				</Scripts>
+			</Button>
+
+			<!-- Config 1 button -->
+			<Button name="$parentConfigTabButton1" inherits="UIPanelButtonTemplate" text="Bidding">
+				<Size>
+					<AbsDimension x="80" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="80" y="-40" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_OpenConfigurationFrame1();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Config 2 button -->
+			<Button name="$parentConfigTabButton2" inherits="UIPanelButtonTemplate" text="Boss DKP">
+				<Size>
+					<AbsDimension x="80" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parentConfigTabButton1" relativePoint="LEFT">
+						<Offset x="84" y="0" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_OpenConfigurationFrame2();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Config 3 button -->
+			<Button name="$parentConfigTabButton2" inherits="UIPanelButtonTemplate" text="Misc DKP">
+				<Size>
+					<AbsDimension x="80" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parentConfigTabButton2" relativePoint="LEFT">
+						<Offset x="84" y="0" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_OpenConfigurationFrame3();
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</Frame>
+
+	<!-- Boss DKP slider (config element for Boss DKP)  -->
+	<Slider name="SOTA_BossDKPSlider" minValue="0" maxValue="4000" defaultValue="400" valueStep="100" inherits="OptionsSliderTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="300" y="14" />
+		</Size>
+		<Scripts>
+			<OnLoad>
+				getglobal(this:GetName().."Low"):SetText("0")
+				getglobal(this:GetName().."High"):SetText("4000")
+			</OnLoad>
+			<OnValueChanged>
+				SOTA_OnOptionBossDKPChanged(this);
+			</OnValueChanged>
+		</Scripts>
+	</Slider>
+
+
+	<!-- SotA Dashboard -->
+	<Frame name="DashboardUIFrame" parent="UIParent" toplevel="true" hidden="true">
+		<Size>
+			<AbsDimension x="296" y="80" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset x="312" y="-118" />
+			</Anchor>
+		</Anchors>
+		
+		<Frames>
+			<!-- Current item frame -->
+			<Frame name="$parentItem">
+				<Size>
+					<AbsDimension x="296" y="40" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-24" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16" />
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16" />
+					</TileSize>
+				</Backdrop>
+
+				<!-- "buttons" -->
+				<Frames>
+					<!-- Button 1A: Raid Queue ("Prayer of Spirit") -->
+					<Button name="$parentShareDKPButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="TOPLEFT">
+								<Offset>
+									<AbsDimension x="4" y="-4" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\Spell_Holy_PrayerOfSpirit.blp" />
+						<PushedTexture file="Interface\ICONS\Spell_Holy_DivineSpirit.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_OpenRaidQueueUI();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Open Raid Queue");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+
+					<!-- Button 2A: Transaction Log ("Note") -->
+					<Button name="$parentTransactionLogButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="40" y="0" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\INV_Misc_Note_05.blp" />
+						<PushedTexture file="Interface\ICONS\INV_Misc_Note_03.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_OpenTransauctionUI();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Open Transaction Log");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+
+					<!-- Button 3A: Configuration ("Gear") -->
+					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="80" y="0" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\INV_Misc_Gear_01.blp" />
+						<PushedTexture file="Interface\ICONS\INV_Misc_Gear_02.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_DisplayConfigurationScreen();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Open Configuration screen");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+
+					<!-- Button 1B: Make Master ("Kings") -->
+					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="220" y="0" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\Spell_Magic_Magearmor.blp" />
+						<PushedTexture file="Interface\ICONS\Spell_Magic_GreaterBlessingOfKings.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_RequestSOTAMaster();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Request SOTA Master status");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+
+					<!-- Button 2B: Share DKP ("Coins") -->
+					<Button name="$parentShareDKPButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="260" y="0" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\INV_Misc_Coin_04.blp" />
+						<PushedTexture file="Interface\ICONS\INV_Misc_Coin_02.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_ShareBossDKP();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Share DKP across Raid and Queue");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+
+
+				</Frames>
+
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString inherits="GameFontNormal" text="SOTA Master:">
+							<Anchors>
+								<Anchor point="LEFT">
+									<Offset>
+										<AbsDimension x="120" y="10" />
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+						<FontString name="SOTA_MasterName" inherits="GameFontNormal" text="(none)">
+							<Anchors>
+								<Anchor point="LEFT">
+									<Offset>
+										<AbsDimension x="120" y="-8" />
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<Color r="1" g="1" b="1" a="" />
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+
+		<Scripts>
+			<OnLoad>
+				this:SetMovable(true)
+				this:SetUserPlaced(true)
+				this:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnDragStart>
+				this:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				this:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
+	</Frame>
+
+	<!--	Auction UI Frame	-->
+	<Frame name="AuctionUIFrame" parent="UIParent" toplevel="true" hidden="true">
+		<Size>
+			<AbsDimension x="460" y="450" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset x="312" y="-118" />
+			</Anchor>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11" />
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32" />
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32" />
+			</EdgeSize>
+		</Backdrop>
+		
+		<Frames>
+			<!-- Current item frame -->
+			<Frame name="$parentItem">			
+				<Size>
+					<AbsDimension x="430" y="100" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-24" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16" />
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16" />
+					</TileSize>
+				</Backdrop>
+
+				<Frames>
+					<Frame name="$parentItem">
+						<Size>
+							<AbsDimension x="64" y="64" />
+						</Size>
+						<Anchors>
+							<Anchor point="TOPLEFT">
+								<Offset>
+									<AbsDimension x="16" y="-16" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<Layers>
+							<Layer level="ARTWORK">
+								<Texture name="$parentTexture" file="">
+									<Anchors>
+										<Anchor point="TOP" relativeTo="$parentHeaderTexture">
+											<Offset>
+												<AbsDimension x="0" y="-14" />
+											</Offset>
+										</Anchor>
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
+					</Frame>
+				</Frames>
+				
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="$parentItemName" inherits="GameFontNormal" font="Fonts\FRIZQT__.TTF" text="">
+							<Color r="" g="" b="" a="" />
+							<FontHeight val="20" />
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+
+			<!-- Bid list frame -->
+			<Frame name="$parentTableList">
+				<Size>
+					<AbsDimension x="430" y="170"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-130"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+				</Backdrop>
+			</Frame>
+
+			<!-- Selected Bid frame -->
+			<Frame name="$parentSelected">
+				<Size>
+					<AbsDimension x="400" y="30"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-320"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+				</Backdrop>
+
+				<Layers>
+					<Layer level="ARTWORK">
+						<!-- Selected player -->
+						<FontString name="$parentBidder" justifyH="LEFT" inherits="GameFontNormal" text="">
+							<Size>
+								<AbsDimension x="100" y="16"/>
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT">
+									<Offset>
+										<AbsDimension x="8" y="0"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<Color r="1" g="1" b="1" />
+						</FontString>
+						<!-- Selected bid -->
+						<FontString name="$parentBid" justifyH="LEFT" inherits="GameFontNormal" text="">
+							<Size>
+								<AbsDimension x="80" y="16"/>
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentBidder"/>
+							</Anchors>
+						</FontString>
+						<!-- Selected Rank -->
+						<FontString name="$parentRank" justifyH="LEFT" inherits="GameFontNormal" text="">
+							<Size>
+								<AbsDimension x="220" y="16"/>
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentBid"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<!-- Cancel (delete bid) button -->
+			<Button name="CancelBidButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="416" y="-318" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_OnCancelBidClick();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Button row to control auction -->
+			<Button name="PauseAuctionButton" inherits="UIPanelButtonTemplate" text="Pause Auction">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="40" y="-370" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnPauseAuctionClick();</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="FinishAuctionButton" inherits="UIPanelButtonTemplate" text="Finish Auction">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="170" y="-370" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnFinishAuctionClick();</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="RestartAuctionButton" inherits="UIPanelButtonTemplate" text="Restart Auction">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="300" y="-370" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnRestartAuctionClick();</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Button row to control AuctionUI -->
+			<Button name="AcceptBidButton" inherits="UIPanelButtonTemplate" text="Declare Winner">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="40" y="-400" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnAcceptBidClick();</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="CancelAuctionButton" inherits="UIPanelButtonTemplate" text="Cancel Auction">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="300" y="-400" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnCancelAuctionClick();</OnClick>
+				</Scripts>
+			</Button>
+
+		</Frames>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentHeaderTexture" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="360" y="64" />
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12" />
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" text="SotA Auction Window">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parentHeaderTexture">
+							<Offset>
+								<AbsDimension x="0" y="-14" />
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				this:SetMovable(true)
+				this:SetUserPlaced(true)
+				this:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnDragStart>
+				this:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				this:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
+	</Frame>
+	
+	<!--	Raid Queue Frame	-->	
+	<Frame name="RaidQueueFrame" inherits="SOTAFrame">
+		<Layers>
+			<Layer>
+				<FontString name="$parentTitle" inherits="GameFontNormal" text="SotA Raid Queue">
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="-6" y="233"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+
+		<Frames>
+			<!-- Queued Tanks Frame -->
+			<Frame name="$parentTankList">
+				<Size>
+					<AbsDimension x="163" y="162" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="17" y="-92" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+				</Backdrop>
+			</Frame>
+			<!-- Queued melee frame -->
+			<Frame name="$parentMeleeList">
+				<Size>
+					<AbsDimension x="163" y="162" />
+				</Size>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentTankList" />
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+				</Backdrop>
+			</Frame>
+			<!-- Queued ranged frame -->
+			<Frame name="$parentRangedList">
+				<Size>
+					<AbsDimension x="163" y="162" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="17" y="-250" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+				</Backdrop>
+			</Frame>
+			<!-- Queued healers frame -->
+			<Frame name="$parentHealerList">
+				<Size>
+					<AbsDimension x="163" y="162" />
+				</Size>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentRangedList" />
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+				</Backdrop>
+			</Frame>
+
+			<!-- Top right corner close button -->
+			<Button name="$parentTopCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="322" y="-9" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_CloseRaidQueueUI();
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>		
+	</Frame>
+
+	<!--	Transaction Log Frame	-->
+	<Frame name="TransactionUIFrame" inherits="SOTAFrame">
+		<Layers>
+			<Layer>
+				<FontString name="$parentTitle" inherits="GameFontNormal" text="SotA Transaction Log">
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="-6" y="233"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+
+		<Frames>
+			<!-- Log frame -->
+			<Frame name="$parentTableList" hidden="true">
+				<Size>
+					<AbsDimension x="320" y="322"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-92"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Frame>
+
+			<!-- Log Details frame -->
+			<Frame name="$parentPlayerList" hidden="true">
+				<Size>
+					<AbsDimension x="324" y="318" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="18" y="-92" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Frame>
+
+			<!-- Top right corner close button -->
+			<Button name="$parentTopCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="322" y="-8" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_CloseTransactionUI();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Log frame buttons: PREVious button -->
+			<Button name="PrevTransactionPageButton" inherits="UIPanelButtonTemplate" text="&lt;&lt; Prev">
+				<Size>
+					<AbsDimension x="78" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="183" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_PreviousTransactionUIPage();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Log frame buttons: NEXT button -->
+			<Button name="NextTransactionPageButton" inherits="UIPanelButtonTemplate" text="Next &gt;&gt;">
+				<Size>
+					<AbsDimension x="78" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="264" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_NextTransactionUIPage();
+					</OnClick>
+				</Scripts>
+			</Button>
+
+			<!-- Log Details frame buttons: Back button -->
+			<Button name="BackToTransactionLogButton" inherits="UIPanelButtonTemplate" text="&lt;&lt; Back">
+				<Size>
+					<AbsDimension x="78" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="183" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_CloseTransactionDetails();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Log Details frame buttons: Undo button -->
+			<Button name="UndoTransactionButton" inherits="UIPanelButtonTemplate" text="Undo">
+				<Size>
+					<AbsDimension x="78" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="264" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_RequestUndoTransaction();
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</Frame>
+
+	<!--	Configuration Frame, tab 1: Bid Settings -->
+	<Frame name="ConfigurationFrame" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
+		<Frames>
+			<!--
+					Configuration Frame 1: Auction Timing
+			-->
+			<!-- Auction Timer, nominal time -->
+			<Slider name="ConfigurationFrameOptionAuctionTime" minValue="0" maxValue="60" defaultValue="25" valueStep="1" inherits="OptionsSliderTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="64" y="-124"/>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="250" y="14" />
+				</Size>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Low"):SetText("0")
+						getglobal(this:GetName().."High"):SetText("60")
+					</OnLoad>
+					<OnValueChanged>
+						SOTA_OnOptionAuctionTimeChanged(this);
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
+			<!-- Auction Extension time -->
+			<Slider name="ConfigurationFrameOptionAuctionExtension" minValue="0" maxValue="20" defaultValue="8" valueStep="1" inherits="OptionsSliderTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="64" y="-156"/>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="250" y="14" />
+				</Size>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Low"):SetText("0")
+						getglobal(this:GetName().."High"):SetText("60")
+					</OnLoad>
+					<OnValueChanged>
+						SOTA_OnOptionAuctionExtensionChanged(this);
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
+			<!-- Enable OS bidding (MS>OS) ? -->
+			<CheckButton name="ConfigurationFrameOptionMSoverOSPriority" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-198"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Enable OS bidding (Mainspec over Offspec)")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<!-- Enable Zone Check for Raid Queue -->
+			<CheckButton name="ConfigurationFrameOptionEnableZonecheck" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-224"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Enable Raid Queue Zonecheck")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<!-- Disable Dashboard ? -->
+			<CheckButton name="ConfigurationFrameOptionDisableDashboard" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-250"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Disable (hide) Dashboard")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+
+			<!--
+					Configuration Frame 2: Boss DKP
+			-->
+			<!-- 20 mans (ZG, AQ20) -->
+			<Slider name="ConfigurationFrameOption_20Mans" inherits="SOTA_BossDKPSlider">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="28" y="-124"/>
+					</Anchor>
+				</Anchors>
+			</Slider>
+			<!-- Molten Core -->
+			<Slider name="ConfigurationFrameOption_MoltenCore" inherits="SOTA_BossDKPSlider">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="28" y="-156"/>
+					</Anchor>
+				</Anchors>
+			</Slider>
+			<!-- Onyxia -->
+			<Slider name="ConfigurationFrameOption_Onyxia" inherits="SOTA_BossDKPSlider">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="28" y="-188"/>
+					</Anchor>
+				</Anchors>
+			</Slider>
+			<!-- Blackwing Lair -->
+			<Slider name="ConfigurationFrameOption_BlackwingLair" inherits="SOTA_BossDKPSlider">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="28" y="-220"/>
+					</Anchor>
+				</Anchors>
+			</Slider>
+			<!-- AQ40 -->
+			<Slider name="ConfigurationFrameOption_AQ40" inherits="SOTA_BossDKPSlider">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="28" y="-252"/>
+					</Anchor>
+				</Anchors>
+			</Slider>
+			<!-- Naxxramas -->
+			<Slider name="ConfigurationFrameOption_Naxxramas" inherits="SOTA_BossDKPSlider">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="28" y="-284"/>
+					</Anchor>
+				</Anchors>
+			</Slider>
+			<!-- World Bosses -->
+			<Slider name="ConfigurationFrameOption_WorldBosses" inherits="SOTA_BossDKPSlider">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="28" y="-316"/>
+					</Anchor>
+				</Anchors>
+			</Slider>
+
+			<!--
+				Configuration Frame 3: Misc. DKP
+			-->
+			<!-- Public Guild Notes, options: 0, 1 -->
+			<CheckButton name="ConfigurationFrameOptionPublicNotes" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-110"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Store DKP in Public Guild Notes")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<!-- Minimum Mid Strategy, options: 0, 1, 2, 3 -->
+			<CheckButton name="ConfigurationFrameOptionMinBidStrategy0" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-154"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("No minimum bid rules")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="ConfigurationFrameOptionMinBidStrategy1" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-176"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Minimum increase by 10 DKP")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="ConfigurationFrameOptionMinBidStrategy2" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-198"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Minimum increase by 10%")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="ConfigurationFrameOptionMinBidStrategy3" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-220"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("GGC Rules (0-200: +10, &gt;200: +50, &gt;1k: +100)")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<!-- DKP String Length, options: 0-8 -->
+			<Slider name="ConfigurationFrameOptionDKPStringLength" minValue="0" maxValue="8" defaultValue="5" valueStep="1" inherits="OptionsSliderTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="64" y="-270"/>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="250" y="14" />
+				</Size>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Low"):SetText("0")
+						getglobal(this:GetName().."High"):SetText("8")
+					</OnLoad>
+					<OnValueChanged>
+						SOTA_OnOptionDKPStringLengthChanged(this);
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
+			<!-- Minimum DKP Penalty, options: 0 - 500, step 10 -->
+			<Slider name="ConfigurationFrameOptionMinimumDKPPenalty" minValue="0" maxValue="500" defaultValue="50" valueStep="10" inherits="OptionsSliderTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="64" y="-314"/>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="250" y="14" />
+				</Size>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Low"):SetText("0")
+						getglobal(this:GetName().."High"):SetText("500")
+					</OnLoad>
+					<OnValueChanged>
+						SOTA_OnOptionMinimumDKPPenaltyChanged(this);
+					</OnValueChanged>
+				</Scripts>
+			</Slider>
+		</Frames>
+
+		<Scripts>
+			<OnLoad>
+				this:SetMovable(true)
+				this:SetUserPlaced(true)
+				this:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnDragStart>
+				this:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				this:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
+	</Frame>
+
+	<!-- Dummy event frame -->
+	<Frame name="SOTAEventFrame">
+		<Scripts>
+			<OnLoad>
+				if (SOTA_OnLoad) then
+					SOTA_OnLoad();
+				end
+			</OnLoad>
+			<OnEvent>
+				if (SOTA_OnEvent) then
+					SOTA_OnEvent(event, arg1, arg2, arg3, arg4, arg5);
+				end
+			</OnEvent>
+			<OnUpdate>
+				if (SOTA_OnTimer) then
+					SOTA_OnTimer(arg1);
+				end
+			</OnUpdate>
+		</Scripts>
+	</Frame>	
+</Ui>
