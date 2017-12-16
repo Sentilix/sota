@@ -70,6 +70,8 @@ Roadmap:
 - Release 1.0.0!
 1.0.1:
 - Bugfix: getTimestamp() depended on the GuildDKP addon - fixed!
+1.0.2:
+- Added ShareRange/RangeShare/SR (same thing)
 
 
 

@@ -1,5 +1,9 @@
-﻿-- Author      : Mimma
--- Create Date : 4/3/2016 11:53:48 AM
+﻿--[[
+	Author      : Mimma VanillaGaming>
+	Create Date : 03-04-2017 11:53:48
+	
+	SotA - State of the Art DKP Addon
+--]]
 
 local SOTA_MESSAGE_PREFIX		= "SOTAv1"
 local SOTA_TITLE				= "SotA"
@@ -265,9 +269,10 @@ GuildDKP            SOTA /command       SOTA !command       SOTA /w command     
 
 /addraid <n>        /SOTA raid +<n>     -                   -                   Add <n> DKP to all players in raid (SOTA: and queue)
 /subtractraid <n>   /SOTA raid -<n>     -                   -                   Subtract <n> DKP from players in raid (SOTA: and queue)
-/addrange <n>       /SOTA range [+]<n>  -                   -                   Add <n> DKP to all players in range (SOTA: and in queue)
+/addrange <n>       /SOTA range [+]<n>  -                   -                   Add <n> DKP to all players in range (SOTA: and queue)
 /shareraid <n>      /SOTA share [+]<n>  -                   -                   Share <n> DKP across all members in raid (SOTA: and queue)
-/sharerange <n>     -                   -                   -                   Share <n> DKP across all members in range (SOTA: not supported)
+/sharerange <n>     /SOTA sharerange [+]<n>                 -                   Share <n> DKP across all members in range (SOTA: and queue)
+					/SOTA rangeshare [+]<n>					-					sharerange and rangeshare (and the alias SR) so the same.
 /gddecay <n>        /SOTA decay <n>[%]  -                   -                   Remove <n>% DKP from all guild members
 
 -                   /SOTA queue         !queue              /w <o> queue        Get queue status
@@ -499,6 +504,28 @@ function SOTA_HandleSOTACommand(msg)
 			end
 		end
 		return SOTA_Call_ShareDKP(arg);
+	end	
+
+	if cmd == "sharerange" or
+	   cmd == "rangeshare" or
+	   cmd == "sr" then
+		--	Command: sharerange / rangeshare / sr
+		--	Syntax: "sharerange [[+]<%d>]"
+		--	Parameter is optional; if omitted, current Boss DKP will be shared.
+		--	Plus is optional (default, undocumented)
+		if not arg or arg == "" then
+			arg = SOTA_GetMinimumBid() * 10;
+			if arg == 0 then
+				gEcho("Boss DKP value could not be calculated - DKP was not shared.");
+				return;
+			end
+		else
+			sign = string.sub(arg, 1, 1);
+			if sign == "+" then
+				arg = string.sub(arg, 2);
+			end
+		end
+		return SOTA_Call_ShareRangedDKP(arg);
 	end	
 
 	--	Command: decay
@@ -2753,6 +2780,7 @@ end
 
 --[[
 --	Add <n> DKP to all in 100 yard range.
+--	1.0.2: result is number of people affected, and not true/false
 --]]
 function SOTA_Call_AddRangedDKP(dkp)
 	if SOTA_IsInRaid(true) then
@@ -2762,12 +2790,16 @@ function SOTA_Call_AddRangedDKP(dkp)
 		SOTA_RequestUpdateGuildRoster();
 	end
 end
-function SOTA_AddRangedDKP(dkp, silentmode)
+function SOTA_AddRangedDKP(dkp, silentmode, dkpLabel)
 	dkp = 1 * dkp;
 
 	local raidUpdateCount = 0;
 	local tidIndex = 1;
 	local tidChanges = { };
+	
+	if not dkpLabel then
+		dkpLabel = "+Range";
+	end
 	
 	for n=1, 40, 1 do
 		local unitid = "raid"..n;
@@ -2798,8 +2830,8 @@ function SOTA_AddRangedDKP(dkp, silentmode)
 		SOTA_rwEcho(string.format("%d DKP has been added for %d players in range.", dkp, raidUpdateCount));
 	end
 	
-	SOTA_LogMultipleTransactions("+Range", tidChanges)	
-	return true;
+	SOTA_LogMultipleTransactions(dkpLabel, tidChanges)	
+	return raidUpdateCount;
 end
 
 
@@ -2846,7 +2878,7 @@ function SOTA_Call_ShareDKP(dkp)
 	if SOTA_IsInRaid(true) then
 		RaidState = RAID_STATE_ENABLED;
 		SOTA_RequestMaster();
-		SOTA_AddJob( function(job) SOTA_ShareDKP(job[2]) end, dkp, "_" )
+		SOTA_AddJob( function(job) SOTA_ShareDKP(job[2]) end, dkp, "_");
 		SOTA_RequestUpdateGuildRoster();
 	end
 end
@@ -2866,6 +2898,32 @@ function SOTA_ShareDKP(sharedDkp)
 		
 		if SOTA_AddRaidDKP(dkp, true, "+Share") then
 			SOTA_rwEcho(string.format("%d DKP was shared (%s DKP per player)", sharedDkp, dkp));
+		end
+		return true;
+	end
+	return false;
+end
+
+--[[
+--	Share <n> DKP to all members in range in raid and queue.
+--	Added in 1.0.2.
+--]]
+function SOTA_Call_ShareRangedDKP(dkp)
+	if SOTA_IsInRaid(true) then
+		RaidState = RAID_STATE_ENABLED;
+		SOTA_RequestMaster();
+		SOTA_AddJob( function(job) SOTA_ShareRangedDKP(job[2]) end, dkp, "_");
+		SOTA_RequestUpdateGuildRoster();
+	end
+end
+function SOTA_ShareRangedDKP(sharedDkp)
+	if SOTA_IsInRaid(true) then	
+		sharedDkp = abs(1 * sharedDkp);
+		
+		local inRange = SOTA_AddRangedDKP(sharedDkp, true, "+ShRange");
+		if inRange > 0 then
+			local dkp = ceil(sharedDkp / inRange);
+			SOTA_rwEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player)", sharedDkp, inRange, dkp));
 		end
 		return true;
 	end
