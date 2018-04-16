@@ -6,18 +6,18 @@
 --]]
 
 local SOTA_MESSAGE_PREFIX		= "SOTAv1"
-local SOTA_TITLE				= "SotA"
+local SOTA_TITLE						= "SotA"
 
 local SOTA_DEBUG_ENABLED		= false;
 
-local CHAT_END					= "|r"
+local CHAT_END						= "|r"
 local COLOUR_INTRO				= "|c80F0F0F0"
-local COLOUR_CHAT				= "|c8040A0F8"
+local COLOUR_CHAT					= "|c8040A0F8"
 
 local PARTY_CHANNEL				= "PARTY"
 local RAID_CHANNEL				= "RAID"
 local YELL_CHANNEL				= "YELL"
-local SAY_CHANNEL				= "SAY"
+local SAY_CHANNEL					= "SAY"
 local WARN_CHANNEL				= "RAID_WARNING"
 local GUILD_CHANNEL				= "GUILD"
 local WHISPER_CHANNEL			= "WHISPER"
@@ -25,54 +25,54 @@ local WHISPER_CHANNEL			= "WHISPER"
 
 --	Settings (persisted)
 -- Pane 1:
-SOTA_CONFIG_AuctionTime			= 20
+SOTA_CONFIG_AuctionTime				= 20
 SOTA_CONFIG_AuctionExtension	= 8
 SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
 SOTA_CONFIG_EnableZonecheck		= 1;	-- Enable zone check when doing raid queue DKP
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
 
 -- Pane 2:
-SOTA_CONFIG_BossDKP				= { }
+SOTA_CONFIG_BossDKP								= { }
 local SOTA_CONFIG_DEFAULT_BossDKP = {
-	{ "20Mans",			200 },
-	{ "MoltenCore",		600 },
-	{ "Onyxia",			600 },
+	{ "20Mans",					200 },
+	{ "MoltenCore",			600 },
+	{ "Onyxia",					600 },
 	{ "BlackwingLair",	600 },
-	{ "AQ40",			800 },
-	{ "Naxxramas",		1200 },
-	{ "WorldBosses",	400 }
+	{ "AQ40",						800 },
+	{ "Naxxramas",			1200 },
+	{ "WorldBosses",		400 }
 }
 -- Pane 3:
-SOTA_CONFIG_UseGuildNotes		= 0;
-SOTA_CONFIG_MinimumBidStrategy	= 1;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
-SOTA_CONFIG_DKPStringLength		= 5;
-SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
+SOTA_CONFIG_UseGuildNotes					= 0;
+SOTA_CONFIG_MinimumBidStrategy		= 1;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
+SOTA_CONFIG_DKPStringLength				= 5;
+SOTA_CONFIG_MinimumDKPPenalty			= 50;	-- Minimum DKP withdrawn when doing percent DKP
 
 
 --	State machine:
-local STATE_NONE				= 0
-local STATE_AUCTION_RUNNING		= 10
-local STATE_AUCTION_PAUSED		= 20
-local STATE_AUCTION_COMPLETE	= 30
-local STATE_PAUSED				= 90
+local STATE_NONE									= 0
+local STATE_AUCTION_RUNNING				= 10
+local STATE_AUCTION_PAUSED				= 20
+local STATE_AUCTION_COMPLETE			= 30
+local STATE_PAUSED								= 90
 
 -- An action runs for a minimum of 20 seconds, and minimum 5 seconds after a new bid is received
-local GUILD_REFRESH_TIMER		= 5;		-- Check guild update every 5th second
+local GUILD_REFRESH_TIMER					= 5;		-- Check guild update every 5th second
 
-local RAID_STATE_DISABLED		= 0
-local RAID_STATE_ENABLED		= 1
+local RAID_STATE_DISABLED					= 0
+local RAID_STATE_ENABLED					= 1
 -- UI Status: True = Open, False = Closed - use to prevent update of UI elements when closed.
-local RaidQueueUIOpen			= false;
-local TransactionUIOpen			= false;
-local TransactionDetailsOpen	= false;
+local RaidQueueUIOpen							= false;
+local TransactionUIOpen						= false;
+local TransactionDetailsOpen			= false;
 
 -- Max # of bids shown in the AuctionUI
-local MAX_BIDS					= 10
+local MAX_BIDS										= 10
 -- List of valid bids: { Name, DKP, BidType(MS=1,OS=2), Class, Rank }
-local IncomingBidsTable			= { };
+local IncomingBidsTable						= { };
 
 -- true if a job is already running
-local JobIsRunning				= false
+local JobIsRunning								= false
 
 
 --[[
@@ -175,24 +175,24 @@ local TRANSACTION_DETAILS_COLUMNS	= 4;
 
 
 local QUALITY_COLORS = {
-	{0, "Poor",			{ 157,157,157 } },	--9d9d9d
-	{1, "Common",		{ 255,255,255 } },	--ffffff
+	{0, "Poor",				{ 157,157,157 } },	--9d9d9d
+	{1, "Common",			{ 255,255,255 } },	--ffffff
 	{2, "Uncommon",		{  30,255,  0 } },	--1eff00
-	{3, "Rare",			{   0,112,255 } },	--0070ff
-	{4, "Epic",			{ 163, 53,238 } },	--a335ee
-	{5, "Legendary",	{ 255,128,  0 } }	--ff8000
+	{3, "Rare",				{   0,112,255 } },	--0070ff
+	{4, "Epic",				{ 163, 53,238 } },	--a335ee
+	{5, "Legendary",	{ 255,128,  0 } }		--ff8000
 }
 
 local CLASS_COLORS = {
-	{ "Druid",			{ 255,125, 10 } },	--255 	125 	10		1.00 	0.49 	0.04 	#FF7D0A
-	{ "Hunter",			{ 171,212,115 } },	--171 	212 	115 	0.67 	0.83 	0.45 	#ABD473 
-	{ "Mage",			{ 105,204,240 } },	--105 	204 	240 	0.41 	0.80 	0.94 	#69CCF0 
-	{ "Paladin",		{ 245,140,186 } },	--245 	140 	186 	0.96 	0.55 	0.73 	#F58CBA
-	{ "Priest",			{ 255,255,255 } },	--255 	255 	255 	1.00 	1.00 	1.00 	#FFFFFF
-	{ "Rogue",			{ 255,245,105 } },	--255 	245 	105 	1.00 	0.96 	0.41 	#FFF569
-	{ "Shaman",			{ 245,140,186 } },	--245 	140 	186 	0.96 	0.55 	0.73 	#F58CBA
-	{ "Warlock",		{ 148,130,201 } },	--148 	130 	201 	0.58 	0.51 	0.79 	#9482C9
-	{ "Warrior",		{ 199,156,110 } }	--199 	156 	110 	0.78 	0.61 	0.43 	#C79C6E
+	{ "Druid",				{ 255,125, 10 } },	--255 	125 	10		1.00 	0.49 	0.04 	#FF7D0A
+	{ "Hunter",				{ 171,212,115 } },	--171 	212 	115 	0.67 	0.83 	0.45 	#ABD473 
+	{ "Mage",					{ 105,204,240 } },	--105 	204 	240 	0.41 	0.80 	0.94 	#69CCF0 
+	{ "Paladin",			{ 245,140,186 } },	--245 	140 	186 	0.96 	0.55 	0.73 	#F58CBA
+	{ "Priest",				{ 255,255,255 } },	--255 	255 	255 	1.00 	1.00 	1.00 	#FFFFFF
+	{ "Rogue",				{ 255,245,105 } },	--255 	245 	105 	1.00 	0.96 	0.41 	#FFF569
+	{ "Shaman",				{ 245,140,186 } },	--245 	140 	186 	0.96 	0.55 	0.73 	#F58CBA
+	{ "Warlock",			{ 148,130,201 } },	--148 	130 	201 	0.58 	0.51 	0.79 	#9482C9
+	{ "Warrior",			{ 199,156,110 } }		--199 	156 	110 	0.78 	0.61 	0.43 	#C79C6E
 }
 
 
@@ -434,7 +434,7 @@ function SOTA_HandleSOTACommand(msg)
 	--	Command: addqueue
 	--	Syntax: "addqueue"
 	if cmd == "addqueue" then
-		if SOTA_IsPromoted then
+		if SOTA_IsPromoted() then
 			if not SOTA_Master then
 				SOTA_RequestMaster();
 			end
@@ -3350,6 +3350,12 @@ end
 
 
 function SOTA_RequestUndoTransaction(transactionID)
+	if not SOTA_CanWriteNotes() then
+		gEcho("Sorry, you do not have access to the DKP notes.");
+		return;
+	end;
+	
+
 	if not transactionID then
 		transactionID = selectedTransactionID
 	end
@@ -3398,7 +3404,6 @@ function SOTA_UndoTransaction(transactionID)
 	
 --  Transaction log: Contains a list of { timestamp, tid, author, description, state, { names, dkp } }
 --	Transaction state: 0=Rolled back, 1=Active (default), 	
-
 end
 
 function SOTA_ReplacePlayerInTransaction(transactionID, currentPlayer, newPlayer)
@@ -3840,6 +3845,14 @@ function SOTA_OnQueuedPlayerClick(object, buttonname)
 		return;
 	end
 
+	-- Quit if player isnt in guild, or is offline:	
+	local playerinfo = SOTA_GetGuildPlayerInfo(playername);
+	if not(playerinfo) or (playerinfo[5] == 0) then
+		return;
+	end
+	
+	echo("BennyHeal appears online!");
+
 	-- Promote player to Master if none is currently set
 	SOTA_CheckForMaster();	
 
@@ -3883,16 +3896,24 @@ function SOTA_OnTransactionLogClick(object)
 	if not selectedTransactionID then
 		return;
 	end
+
+	if SOTA_CanWriteNotes() then
+		UndoTransactionButton:Enable();
+	else
+		UndoTransactionButton:Disable();
+	end;
 	
 	SOTA_RefreshTransactionDetails();
 	SOTA_OpenTransactionDetails();
 end
 
 function SOTA_OnTransactionLogDetailPlayer(object)
-	local msgID = object:GetID();
-	local playername = getglobal(object:GetName().."PlayerButton"):GetText();
+	if SOTA_CanWriteNotes() then
+		local msgID = object:GetID();
+		local playername = getglobal(object:GetName().."PlayerButton"):GetText();
 	
-	SOTA_ToggleIncludePlayerInTransaction(playername);
+		SOTA_ToggleIncludePlayerInTransaction(playername);
+	end;
 end
 
 function SOTA_OnOptionAuctionTimeChanged(object)
@@ -4462,8 +4483,6 @@ end
 ]]
 function SOTA_RefreshGuildRoster()
 	--echo("Refreshing GuildRoster");
-
-	GuildRosterTable = { }
 	
 	if not SOTA_CanReadNotes() then
 		return;
@@ -4471,6 +4490,8 @@ function SOTA_RefreshGuildRoster()
 
 	local memberCount = GetNumGuildMembers();
 	local note
+	local NewGuildRosterTable = { }
+	
 	for n=1,memberCount,1 do
 		local name, rank, _, _, class, zone, publicnote, officernote, online = GetGuildRosterInfo(n)
 
@@ -4499,8 +4520,10 @@ function SOTA_RefreshGuildRoster()
 		
 		--echo(string.format("Added %s (%s)", name, online));
 		
-		GuildRosterTable[n] = { name, (1 * dkp), class, rank, online, zone }
+		NewGuildRosterTable[n] = { name, (1 * dkp), class, rank, online, zone }
 	end
+	
+	GuildRosterTable = NewGuildRosterTable;
 end
 
 
@@ -4753,18 +4776,18 @@ end
 function SOTA_OnLoad()
 	gEcho(string.format("Loot Distribution Addon version %s by %s", GetAddOnMetadata("SOTA", "Version"), GetAddOnMetadata("SOTA", "Author")));
     
-    this:RegisterEvent("ADDON_LOADED");
-    this:RegisterEvent("GUILD_ROSTER_UPDATE");
-    this:RegisterEvent("RAID_ROSTER_UPDATE");
+	this:RegisterEvent("ADDON_LOADED");
+	this:RegisterEvent("GUILD_ROSTER_UPDATE");
+	this:RegisterEvent("RAID_ROSTER_UPDATE");
 	this:RegisterEvent("CHAT_MSG_GUILD");
 	this:RegisterEvent("CHAT_MSG_RAID");
 	this:RegisterEvent("CHAT_MSG_RAID_LEADER");
-    this:RegisterEvent("CHAT_MSG_WHISPER");
-    this:RegisterEvent("CHAT_MSG_ADDON");
+	this:RegisterEvent("CHAT_MSG_WHISPER");
+	this:RegisterEvent("CHAT_MSG_ADDON");
 
     
-    SOTA_SetAuctionState(STATE_NONE);
-    SOTA_RefreshRaidRoster();
+	SOTA_SetAuctionState(STATE_NONE);
+	SOTA_RefreshRaidRoster();
 	SOTA_InitializeTableElements(); 
 	
 	SOTA_RequestUpdateGuildRoster()

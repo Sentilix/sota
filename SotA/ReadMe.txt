@@ -278,9 +278,14 @@ does not support raid queues.
 /sota share +<n>
 Share <n> DKP across all raid players. Online players in raid queue will be
 given same amount.
-This is same as the command "/shareraid" in guild dkp, except that GuildDKP
-does not support raid queues.
-Note that the command "/sharerange" in GuildDKP is not implemented in SOTA.
+This is same as the command "/shareraid" in the GuildDKP addon, except that 
+GuildDKP does not support raid queues.
+
+/sota sharerange +<n>
+Same as "/sota share +<n>", but only shares to online players within range.
+Players in raid queue will receive same amount. This command is same as the
+"/sharerange" command in the GuildDKP addon, except that  GuildDKP does not 
+support raid queues.
 
 /sota decay <n>%
 Remove <n> percent DKP from ALL players in the guild.

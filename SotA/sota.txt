@@ -72,6 +72,9 @@ Roadmap:
 - Bugfix: getTimestamp() depended on the GuildDKP addon - fixed!
 1.0.2:
 - Added ShareRange/RangeShare/SR (same thing)
+- Bugfix: UNDO button is now only visible if you can actually change notes.
+- Bugfix: Toggle DKP for member is now only active if you can actually change notes.
+- Bugfix: Added Guild and Online check when inviting from raid queue.
 
 
 
