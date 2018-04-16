@@ -3851,8 +3851,6 @@ function SOTA_OnQueuedPlayerClick(object, buttonname)
 		return;
 	end
 	
-	echo("BennyHeal appears online!");
-
 	-- Promote player to Master if none is currently set
 	SOTA_CheckForMaster();	
 
