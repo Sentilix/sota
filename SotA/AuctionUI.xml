@@ -11,7 +11,6 @@
 				<Offset x="312" y="-124" />
 			</Anchor>
 		</Anchors>
-
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture file="Interface\Spellbook\Spellbook-Icon">
@@ -62,7 +61,6 @@
 				</Texture>
 			</Layer>
 		</Layers>
-
 		<Scripts>
 			<OnLoad>
 				this:SetMovable(true)
@@ -190,8 +188,7 @@
 				this:GetScript("OnLeave")(this)
 			</OnLoad>
 		</Scripts>
-		<NormalTexture name="$parentBG">
-		</NormalTexture>
+		<NormalTexture name="$parentBG" />
 	</Button>
 
 	<!-- template for a Log entry in the Transaction UI -->
@@ -214,7 +211,6 @@
 						</Anchor>
 					</Anchors>
 				</FontString>
-
 				<!-- + / - icon -->
 				<Texture name="$parentIcon" file="">
 					<Size>
@@ -223,8 +219,7 @@
 					<Anchors>
 						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentTime"/>
 					</Anchors>
-				</Texture>
-				
+				</Texture>				
 				<!-- Transaction ID -->
 				<FontString name="$parentTID" justifyH="RIGHT" inherits="GameFontNormal">
 					<Size>
@@ -242,7 +237,6 @@
 						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentTID"/>
 					</Anchors>
 				</FontString>
-
 				<!-- Player name -->
 				<FontString name="$parentName" justifyH="LEFT" inherits="GameFontNormal">
 					<Size>
@@ -404,7 +398,6 @@
 				<Offset x="312" y="-124" />
 			</Anchor>
 		</Anchors>
-
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture file="Interface\Spellbook\Spellbook-Icon">
@@ -476,7 +469,6 @@
 				</FontString>
 			</Layer>
 		</Layers>
-
 		<Frames>
 			<!-- Top right corner close button -->
 			<Button name="$parentTopCloseButton" inherits="UIPanelCloseButton">
@@ -507,7 +499,6 @@
 					</OnClick>
 				</Scripts>
 			</Button>
-
 			<!-- Config 1 button -->
 			<Button name="$parentConfigTabButton1" inherits="UIPanelButtonTemplate" text="Bidding">
 				<Size>
@@ -556,6 +547,26 @@
 					</OnClick>
 				</Scripts>
 			</Button>
+			<!-- Dummy input field to claim frame focus -->
+			<EditBox name="$parentDummy" letters="1" visible="false">
+				<Size>
+					<AbsDimension x="0" y="0"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="-200" y="-200"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEscapePressed")
+					</OnLoad>
+					<OnEscapePressed>
+						SOTA_CloseConfigurationUI();
+					</OnEscapePressed>
+				</Scripts>
+			</EditBox>
 		</Frames>
 	</Frame>
 
@@ -575,7 +586,6 @@
 		</Scripts>
 	</Slider>
 
-
 	<!-- SotA Dashboard -->
 	<Frame name="DashboardUIFrame" parent="UIParent" toplevel="true" hidden="true">
 		<Size>
@@ -585,8 +595,7 @@
 			<Anchor point="TOPLEFT">
 				<Offset x="312" y="-118" />
 			</Anchor>
-		</Anchors>
-		
+		</Anchors>	
 		<Frames>
 			<!-- Current item frame -->
 			<Frame name="$parentItem">
@@ -600,7 +609,10 @@
 						</Offset>
 					</Anchor>
 				</Anchors>
-				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true" bgFile="Interface\DialogFrame\UI-DialogBox-Background">
+					<BackgroundInsets>
+						<AbsInset left="4" right="4" top="4" bottom="4" />
+					</BackgroundInsets>
 					<EdgeSize>
 						<AbsValue val="16" />
 					</EdgeSize>
@@ -608,7 +620,6 @@
 						<AbsValue val="16" />
 					</TileSize>
 				</Backdrop>
-
 				<!-- "buttons" -->
 				<Frames>
 					<!-- Button 1A: Raid Queue ("Prayer of Spirit") -->
@@ -637,7 +648,6 @@
 							</OnLeave>
 						</Scripts>
 					</Button>
-
 					<!-- Button 2A: Transaction Log ("Note") -->
 					<Button name="$parentTransactionLogButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
 						<Size>
@@ -664,7 +674,6 @@
 							</OnLeave>
 						</Scripts>
 					</Button>
-
 					<!-- Button 3A: Configuration ("Gear") -->
 					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
 						<Size>
@@ -691,7 +700,6 @@
 							</OnLeave>
 						</Scripts>
 					</Button>
-
 					<!-- Button 1B: Make Master ("Kings") -->
 					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
 						<Size>
@@ -718,7 +726,6 @@
 							</OnLeave>
 						</Scripts>
 					</Button>
-
 					<!-- Button 2B: Share DKP ("Coins") -->
 					<Button name="$parentShareDKPButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
 						<Size>
@@ -745,13 +752,10 @@
 							</OnLeave>
 						</Scripts>
 					</Button>
-
-
 				</Frames>
-
 				<Layers>
 					<Layer level="ARTWORK">
-						<FontString inherits="GameFontNormal" text="SOTA Master:">
+						<FontString inherits="GameFontNormal" text="SOTA Master:">s
 							<Anchors>
 								<Anchor point="LEFT">
 									<Offset>
@@ -774,7 +778,6 @@
 				</Layers>
 			</Frame>
 		</Frames>
-
 		<Scripts>
 			<OnLoad>
 				this:SetMovable(true)
@@ -811,7 +814,6 @@
 				<AbsValue val="32" />
 			</EdgeSize>
 		</Backdrop>
-		
 		<Frames>
 			<!-- Current item frame -->
 			<Frame name="$parentItem">			
@@ -833,7 +835,6 @@
 						<AbsValue val="16" />
 					</TileSize>
 				</Backdrop>
-
 				<Frames>
 					<Frame name="$parentItem">
 						<Size>
@@ -861,7 +862,6 @@
 						</Layers>
 					</Frame>
 				</Frames>
-				
 				<Layers>
 					<Layer level="ARTWORK">
 						<FontString name="$parentItemName" inherits="GameFontNormal" font="Fonts\FRIZQT__.TTF" text="">
@@ -871,7 +871,6 @@
 					</Layer>
 				</Layers>
 			</Frame>
-
 			<!-- Bid list frame -->
 			<Frame name="$parentTableList">
 				<Size>
@@ -893,7 +892,6 @@
 					</TileSize>
 				</Backdrop>
 			</Frame>
-
 			<!-- Selected Bid frame -->
 			<Frame name="$parentSelected">
 				<Size>
@@ -914,7 +912,6 @@
 						<AbsValue val="16"/>
 					</TileSize>
 				</Backdrop>
-
 				<Layers>
 					<Layer level="ARTWORK">
 						<!-- Selected player -->
@@ -1032,7 +1029,6 @@
 					<OnClick>SOTA_OnCancelAuctionClick();</OnClick>
 				</Scripts>
 			</Button>
-
 		</Frames>
 		<Layers>
 			<Layer level="ARTWORK">
@@ -1167,7 +1163,6 @@
 					</TileSize>
 				</Backdrop>
 			</Frame>
-
 			<!-- Top right corner close button -->
 			<Button name="$parentTopCloseButton" inherits="UIPanelCloseButton">
 				<Anchors>
@@ -1199,7 +1194,6 @@
 				</FontString>
 			</Layer>
 		</Layers>
-
 		<Frames>
 			<!-- Log frame -->
 			<Frame name="$parentTableList" hidden="true">
@@ -1214,7 +1208,6 @@
 					</Anchor>
 				</Anchors>
 			</Frame>
-
 			<!-- Log Details frame -->
 			<Frame name="$parentPlayerList" hidden="true">
 				<Size>
@@ -1228,7 +1221,6 @@
 					</Anchor>
 				</Anchors>
 			</Frame>
-
 			<!-- Top right corner close button -->
 			<Button name="$parentTopCloseButton" inherits="UIPanelCloseButton">
 				<Anchors>
@@ -1274,7 +1266,6 @@
 					</OnClick>
 				</Scripts>
 			</Button>
-
 			<!-- Log Details frame buttons: Back button -->
 			<Button name="BackToTransactionLogButton" inherits="UIPanelButtonTemplate" text="&lt;&lt; Back">
 				<Size>
@@ -1309,13 +1300,11 @@
 			</Button>
 		</Frames>
 	</Frame>
-
+	
 	<!--	Configuration Frame, tab 1: Bid Settings -->
 	<Frame name="ConfigurationFrame" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
 		<Frames>
-			<!--
-					Configuration Frame 1: Auction Timing
-			-->
+			<!-- Configuration Frame 1: Auction Timing -->
 			<!-- Auction Timer, nominal time -->
 			<Slider name="ConfigurationFrameOptionAuctionTime" minValue="0" maxValue="60" defaultValue="25" valueStep="1" inherits="OptionsSliderTemplate">
 				<Anchors>
@@ -1404,10 +1393,7 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
-
-			<!--
-					Configuration Frame 2: Boss DKP
-			-->
+			<!-- Configuration Frame 2: Boss DKP -->
 			<!-- 20 mans (ZG, AQ20) -->
 			<Slider name="ConfigurationFrameOption_20Mans" inherits="SOTA_BossDKPSlider">
 				<Anchors>
@@ -1464,10 +1450,7 @@
 					</Anchor>
 				</Anchors>
 			</Slider>
-
-			<!--
-				Configuration Frame 3: Misc. DKP
-			-->
+			<!-- Configuration Frame 3: Misc. DKP -->
 			<!-- Public Guild Notes, options: 0, 1 -->
 			<CheckButton name="ConfigurationFrameOptionPublicNotes" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
@@ -1586,7 +1569,6 @@
 				</Scripts>
 			</Slider>
 		</Frames>
-
 		<Scripts>
 			<OnLoad>
 				this:SetMovable(true)
@@ -1600,6 +1582,28 @@
 				this:StopMovingOrSizing()
 			</OnDragStop>
 		</Scripts>
+	</Frame>
+
+	<!-- Titan Panel Button (optional) -->
+	<Frame parent="UIParent" hide="true">
+		<Frames>
+			<Button name="TitanPanelSOTAButton" inherits="TitanPanelIconTemplate" frameStrata="FULLSCREEN" toplevel="true">
+				<Scripts>
+					<OnLoad>
+						if TitanPanelButton_OnLoad then
+						TitanPanelSOTAButton_OnLoad();
+						TitanPanelButton_OnLoad();
+						end
+					</OnLoad>
+					<OnClick>
+						if arg1 == "LeftButton" then
+						SOTA_ToggleConfigurationUI();
+						end
+						TitanPanelButton_OnClick(arg1);
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
 	</Frame>
 
 	<!-- Dummy event frame -->

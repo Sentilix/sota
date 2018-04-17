@@ -6,6 +6,7 @@
 --]]
 
 local SOTA_MESSAGE_PREFIX		= "SOTAv1"
+local SOTA_ID								= "SOTA"
 local SOTA_TITLE						= "SotA"
 
 local SOTA_DEBUG_ENABLED		= false;
@@ -65,6 +66,7 @@ local RAID_STATE_ENABLED					= 1
 local RaidQueueUIOpen							= false;
 local TransactionUIOpen						= false;
 local TransactionDetailsOpen			= false;
+local ConfigurationDialogOpen			= false;
 
 -- Max # of bids shown in the AuctionUI
 local MAX_BIDS										= 10
@@ -967,7 +969,7 @@ local SOTA_GeneralTimers = { }
 
 function SOTA_setSecondCounter(seconds)
 	Seconds = seconds;
-end
+end;
 
 function SOTA_AddTimer( method, duration )
 	SOTA_GeneralTimers[table.getn(SOTA_GeneralTimers) + 1] = { method, SOTA_TimerTick + duration }
@@ -1665,9 +1667,30 @@ end
 
 
 --
+--	Titan Panel integration
+--
+function TitanPanelSOTAButton_OnLoad()
+    this.registry = {
+        id = SOTA_ID,
+        menuText = SOTA_TITLE,
+        buttonTextFunction = nil,
+        tooltipTitle = "State of the Art [SotA] Options",
+        tooltipTextFunction = "TitanPanelSOTAButton_GetTooltipText",
+        frequency = 0,
+	    icon = "Interface\\ICONS\\INV_Misc_Coin_02"
+    };
+end
+
+function TitanPanelSOTAButton_GetTooltipText()
+    return "Click to toggle option panel";
+end
+
+
+
+
+--
 --	UI functions
 --
-
 
 function SOTA_OpenAuctionUI()
 	SOTA_ClearSelectedPlayer();
@@ -1722,7 +1745,16 @@ function SOTA_CloseTransactionDetails()
 	SOTA_OpenTransauctionUI();
 end
 
+function SOTA_ToggleConfigurationUI()
+	if ConfigurationDialogOpen then
+		SOTA_CloseConfigurationUI();
+	else
+		SOTA_OpenConfigurationUI();
+	end;
+end;
+
 function SOTA_OpenConfigurationUI()
+	ConfigurationDialogOpen = true;
 	SOTA_RefreshBossDKPValues();
 	SOTA_OpenConfigurationFrame1()
 end
@@ -1793,9 +1825,8 @@ end
 
 function SOTA_CloseConfigurationUI()
 	ConfigurationFrame:Hide();
+	ConfigurationDialogOpen = false;
 end
-
-
 
 
 
