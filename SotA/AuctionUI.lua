@@ -8,6 +8,7 @@
 local SOTA_MESSAGE_PREFIX		= "SOTAv1"
 local SOTA_ID								= "SOTA"
 local SOTA_TITLE						= "SotA"
+local SOTA_TITAN_TITLE			= "SotA - DKP Distribution"
 
 local SOTA_DEBUG_ENABLED		= false;
 
@@ -29,7 +30,8 @@ local WHISPER_CHANNEL			= "WHISPER"
 SOTA_CONFIG_AuctionTime				= 20
 SOTA_CONFIG_AuctionExtension	= 8
 SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
-SOTA_CONFIG_EnableZonecheck		= 1;	-- Enable zone check when doing raid queue DKP
+SOTA_CONFIG_EnableZoneCheck		= 1;	-- Enable zone check when doing raid queue DKP
+SOTA_CONFIG_EnableOnlineCheck	= 1;	-- Enable online check when doing raid queue DKP
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
 
 -- Pane 2:
@@ -334,19 +336,6 @@ function SOTA_HandleSOTACommand(msg)
 	
 
 
-	-- if cmd == "test" then
-		-- local zonetext = GetRealZoneText();
-		-- local subzone = GetSubZoneText();
-		-- if subzone and not subzone == "" then
-			-- gEcho(string.format("Zone: <%s> - sub zone: <%s>", zonetext, subzone));
-		-- else
-			-- gEcho(string.format("Zone: <%s>", zonetext));
-		-- end
-		-- return;	
-	-- end
-
-
-
 	--	Command: help
 	--	Syntax: "config"	
 	if cmd == "help" or cmd == "?" or cmd == "" then
@@ -371,19 +360,6 @@ function SOTA_HandleSOTACommand(msg)
 	end
 
 
-	-- --	Command: sync
-	-- --	Syntax: "sync"	
-	-- --	Currently not working due to Timer not set up.
-	-- if cmd == "sync" then
-		-- if synchronizationState == 0 then
-			-- SOTA_Synchronize();
-		-- else
-			-- gEcho("A synchronization task is already running!");
-		-- end
-		-- return;	
-	-- end
-	-- 
-	
 	--	Command: version
 	--	Syntax: "version"
 	if cmd == "version" then
@@ -1672,7 +1648,7 @@ end
 function TitanPanelSOTAButton_OnLoad()
     this.registry = {
         id = SOTA_ID,
-        menuText = SOTA_TITLE,
+        menuText = SOTA_TITAN_TITLE,
         buttonTextFunction = nil,
         tooltipTitle = "State of the Art [SotA] Options",
         tooltipTextFunction = "TitanPanelSOTAButton_GetTooltipText",
@@ -1765,6 +1741,7 @@ function SOTA_CloseConfigurationElements(headline)
 	ConfigurationFrameOptionAuctionExtension:Hide();
 	ConfigurationFrameOptionMSoverOSPriority:Hide();
 	ConfigurationFrameOptionEnableZonecheck:Hide();
+	ConfigurationFrameOptionEnableOnlinecheck:Hide();
 	ConfigurationFrameOptionDisableDashboard:Hide();
 	-- ConfigurationFrame2:
 	ConfigurationFrameOption_20Mans:Hide();
@@ -1794,6 +1771,7 @@ function SOTA_OpenConfigurationFrame1()
 	ConfigurationFrameOptionAuctionExtension:Show();
 	ConfigurationFrameOptionMSoverOSPriority:Show();
 	ConfigurationFrameOptionEnableZonecheck:Show();
+	ConfigurationFrameOptionEnableOnlinecheck:Show();
 	ConfigurationFrameOptionDisableDashboard:Show();
 	
 	ConfigurationFrame:Show();	
@@ -2705,7 +2683,10 @@ function SOTA_Call_AddRaidDKP(dkp)
 		SOTA_RequestUpdateGuildRoster();
 	end
 end
+local SOTA_QueuedPlayersImpacted;
 function SOTA_AddRaidDKP(dkp, silentmode, callMethod)
+	SOTA_QueuedPlayersImpacteded = 0;
+
 	if SOTA_IsInRaid(true) then	
 		dkp = 1 * dkp;
 		
@@ -2725,7 +2706,8 @@ function SOTA_AddRaidDKP(dkp, silentmode, callMethod)
 		end
 		
 		local instance, zonename;
-		local zonecheck = SOTA_CONFIG_EnableZonecheck;
+		local zonecheck = SOTA_CONFIG_EnableZoneCheck;
+		local onlinecheck = SOTA_CONFIG_EnableOnlineCheck;
 		if zonecheck == 1 then
 			instance, zonename = SOTA_GetValidDKPZones();
 			if not instance then
@@ -2735,17 +2717,30 @@ function SOTA_AddRaidDKP(dkp, silentmode, callMethod)
 		
 		for n=1, table.getn(RaidQueue), 1 do
 			local guildInfo = SOTA_GetGuildPlayerInfo(RaidQueue[n][1]);
-			if guildInfo and guildInfo[5] == 1 then
-				if zonecheck == 0 or (guildInfo[6] == instance or guildInfo[6] == zonename) then			
-					--echo(string.format("Applying DKP: %s, zone=%s", RaidQueue[n][1], guildInfo[6]));
+
+			if guildInfo then
+				local eligibleForDKP = true;
+	
+				-- Player is OFFLINE, skip if not allowed
+				if guildInfo[5] == 0 and onlinecheck == 1 then
+					gEcho(string.format("No queue DKP for %s (Offline)", RaidQueue[n][1]));
+					eligibleForDKP = false;
+				end
+				
+				-- Player is not in raid zone
+				if eligibleForDKP and guildInfo[5] == 1 and zonecheck == 1 then
+						if not(guildInfo[6] == instance or guildInfo[6] == zonename) then
+							gEcho(string.format("No queue DKP for %s (location: %s)", RaidQueue[n][1], guildInfo[6]));
+							eligibleForDKP = false;
+						end;
+				end;
+								
+				if eligibleForDKP then				   
 					SOTA_ApplyPlayerDKP(RaidQueue[n][1], dkp);				
 					tidChanges[tidIndex] = { RaidQueue[n][1], dkp };
 					tidIndex = tidIndex + 1;
-				else
-					gEcho(string.format("No queue DKP for %s (location: %s)", RaidQueue[n][1], guildInfo[6]));
+					SOTA_QueuedPlayersImpacteded = SOTA_QueuedPlayersImpacteded + 1;
 				end
-			else
-				gEcho(string.format("No queue DKP for %s (Offline)", RaidQueue[n][1]));
 			end
 		end
 		
@@ -2824,6 +2819,7 @@ end
 function SOTA_AddRangedDKP(dkp, silentmode, dkpLabel)
 	dkp = 1 * dkp;
 
+	SOTA_QueuedPlayersImpacted = 0;
 	local raidUpdateCount = 0;
 	local tidIndex = 1;
 	local tidChanges = { };
@@ -2849,16 +2845,21 @@ function SOTA_AddRangedDKP(dkp, silentmode, dkpLabel)
 	
 	for n=1, table.getn(RaidQueue), 1 do
 		local guildInfo = SOTA_GetGuildPlayerInfo(RaidQueue[n][1]);
-		if guildInfo and guildInfo[5] == 1 then
+		if guildInfo and (SOTA_CONFIG_EnableOnlineCheck == 0 or guildInfo[5] == 1) then
 			SOTA_ApplyPlayerDKP(RaidQueue[n][1], dkp);
 			
 			tidChanges[tidIndex] = { RaidQueue[n][1], dkp };
 			tidIndex = tidIndex + 1;
+			SOTA_QueuedPlayersImpacted = SOTA_QueuedPlayersImpacted + 1;
 		end;
 	end
 	
 	if not silentmode then
-		SOTA_rwEcho(string.format("%d DKP has been added for %d players in range.", dkp, raidUpdateCount));
+		if SOTA_QueuedPlayersImpacted == 0 then
+			SOTA_rwEcho(string.format("%d DKP has been added for %d players in range.", dkp, raidUpdateCount));
+		else
+			SOTA_rwEcho(string.format("%d DKP has been added for %d players in range (plus %d in queue).", dkp, raidUpdateCount, SOTA_QueuedPlayersImpacted));
+		end;
 	end
 	
 	SOTA_LogMultipleTransactions(dkpLabel, tidChanges)	
@@ -2928,7 +2929,11 @@ function SOTA_ShareDKP(sharedDkp)
 		end
 		
 		if SOTA_AddRaidDKP(dkp, true, "+Share") then
-			SOTA_rwEcho(string.format("%d DKP was shared (%s DKP per player)", sharedDkp, dkp));
+			if SOTA_QueuedPlayersImpacteded == 0 then
+				SOTA_rwEcho(string.format("%d DKP was shared (%s DKP per player)", sharedDkp, dkp));
+			else
+				SOTA_rwEcho(string.format("%d DKP was shared (%s DKP per player plus %d in queue)", sharedDkp, dkp, SOTA_QueuedPlayersImpacteded));
+			end;
 		end
 		return true;
 	end
@@ -2954,7 +2959,11 @@ function SOTA_ShareRangedDKP(sharedDkp)
 		local inRange = SOTA_AddRangedDKP(sharedDkp, true, "+ShRange");
 		if inRange > 0 then
 			local dkp = ceil(sharedDkp / inRange);
-			SOTA_rwEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player)", sharedDkp, inRange, dkp));
+			if SOTA_QueuedPlayersImpacted == 0 then
+				SOTA_rwEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player)", sharedDkp, inRange, dkp));
+			else
+				SOTA_rwEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player plus %d in queue)", sharedDkp, inRange, dkp, SOTA_QueuedPlayersImpacted));
+			end;
 		end
 		return true;
 	end
@@ -3496,34 +3505,7 @@ function SOTA_GetGuildPlayerInfo(player)
 	end
 	
 	return nil;
-
-	-- local memberCount = GetNumGuildMembers()
-	-- local playerInfo = nil
--- 
-	-- for n=1,memberCount,1 do
-		-- --	TODO: Cache the GuildRoster just like the RaidRoster
-		-- local dkpValue = 0;
-		-- local name, rank, _, _, playerclass, _, publicNote, officerNote = GetGuildRosterInfo(n)
-		-- if name == player then
-			-- echo("Found guilded player: ".. name);
-			-- local note = officerNote
-			-- if SOTA_CONFIG_UseGuildNotes then
-				-- note = publicNote
-			-- end
-			-- local _, _, dkp = string.find(note, "<(-?%d*)>")
--- 
-			-- if dkp and tonumber(dkp)  then
-				-- dkpValue = (1 * dkp)
-			-- end
-			-- 
-			-- playerInfo = { player, dkpValue, playerclass, rank }
-		-- end
-   	-- end
-   	-- 
-   	-- return playerInfo;
 end
-
-
 
 
 
@@ -3586,12 +3568,6 @@ function SOTA_GetStartingDKP()
 	if not subzone then
 		subzone = ""
 	end
-	
-	-- AQ20 and AQ40 share name outside the instance.
-	-- Check the X coordinate to see if we are in AQ20 or AQ40:
-	--SetMapToCurrentZone();
-	--local posX, posY = GetPlayerMapPosition("player");
-	--echo("Y: ".. posY);
 	
 	if zonetext == "Zul'Gurub" or zonetext == "Ruins of Ahn'Qiraj" --[[or (zonetext == "Gates of Ahn'Qiraj" and posX >= 0.422)]] then
 		startingDKP = SOTA_GetBossDKPValue("20Mans") / 10;				-- Verified
@@ -3772,9 +3748,19 @@ function SOTA_HandleCheckbox(checkbox)
 	--	Enable RQ Zonecheck:		
 	if checkboxname == "ConfigurationFrameOptionEnableZonecheck" then
 		if checkbox:GetChecked() then
-			SOTA_CONFIG_EnableZonecheck = 1;
+			SOTA_CONFIG_EnableZoneCheck = 1;
 		else
-			SOTA_CONFIG_EnableZonecheck = 0;
+			SOTA_CONFIG_EnableZoneCheck = 0;
+		end
+		return;
+	end
+
+	--	Enable RQ Onlinecheck:		
+	if checkboxname == "ConfigurationFrameOptionEnableOnlinecheck" then
+		if checkbox:GetChecked() then
+			SOTA_CONFIG_EnableOnlineCheck = 1;
+		else
+			SOTA_CONFIG_EnableOnlineCheck = 0;
 		end
 		return;
 	end
@@ -4753,15 +4739,19 @@ function SOTA_InitializeConfigSettings()
 	if not SOTA_CONFIG_EnableOSBidding then
 		SOTA_CONFIG_EnableOSBidding = 1;
 	end
-	if not SOTA_CONFIG_EnableZonecheck then
-		SOTA_CONFIG_EnableZonecheck = 1;
+	if not SOTA_CONFIG_EnableZoneCheck then
+		SOTA_CONFIG_EnableZoneCheck = 1;
+	end
+	if not SOTA_CONFIG_EnableOnlineCheck then
+		SOTA_CONFIG_EnableOnlineCheck = 1;
 	end
 	if not SOTA_CONFIG_DisableDashboard then
 		SOTA_CONFIG_DisableDashboard = 1;
 	end
 	
 	getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
-	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZonecheck);
+	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZoneCheck);
+	getglobal("ConfigurationFrameOptionEnableOnlinecheck"):SetChecked(SOTA_CONFIG_EnableOnlineCheck);
 	getglobal("ConfigurationFrameOptionDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
 
 

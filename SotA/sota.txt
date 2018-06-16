@@ -1,5 +1,7 @@
 SotA - State of the Art
 
+
+
 Roadmap:
 0.7	Renamed to SOTA
 0.7.1:
@@ -77,6 +79,9 @@ Roadmap:
 - Bugfix: Added Guild and Online check when inviting from raid queue.
 1.0.3:
 - Added support for Titan panel.
+- Added new option: Check for online players.
+	If a player is OFFLINE and online check is ticked off, he will still receive queue dkp.
+- Bugfix: Some settings was not persisted correct - fixed.
 - Update: UI now responds (closes) when pressing Escape.
 
 
