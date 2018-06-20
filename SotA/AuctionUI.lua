@@ -276,9 +276,10 @@ GuildDKP            SOTA /command       SOTA !command       SOTA /w command     
 /addrange <n>       /SOTA range [+]<n>  -                   -                   Add <n> DKP to all players in range (SOTA: and queue)
 /shareraid <n>      /SOTA share [+]<n>  -                   -                   Share <n> DKP across all members in raid (SOTA: and queue)
 /sharerange <n>     /SOTA sharerange [+]<n>                 -                   Share <n> DKP across all members in range (SOTA: and queue)
-					/SOTA rangeshare [+]<n>					-					sharerange and rangeshare (and the alias SR) so the same.
+-                   /SOTA rangeshare [+]<n>                 -                   sharerange and rangeshare (and the alias SR) do the same.
 /gddecay <n>        /SOTA decay <n>[%]  -                   -                   Remove <n>% DKP from all guild members
 
+-                   /SOTA listqueue     !listqueue          /w <o> listqueue    List names of people in queue (by whisper or local if user have SOTA installed)
 -                   /SOTA queue         !queue              /w <o> queue        Get queue status
 -                   /SOTA queue <r>     !queue <r>          /w <o> queue <r>    Queue as role <r>: <r> can be tank, melee, ranged or healer
 -                   /SOTA addqueue <p>  -                   -                   Add person <p> manually to the queue. Must be promoted.
@@ -290,12 +291,12 @@ GuildDKP            SOTA /command       SOTA !command       SOTA /w command     
 -                   /SOTA bid min       !bid min            /w <o> bid min      Bid the minimum bid on item currently being auctioned
 -                   /SOTA bid max       !bid max            /w <o> bid max      Bid everyting (go all out) on item currently being auctioned
 
--					/SOTA config		-					-					Open the configuration interface
--					/SOTA log			-					-					Open the transaction log interface
--					/SOTA version		-					-					Check the SOTA versions running
--					/SOTA master		-					-					Force player to become Master (if he is raid leader or assistant)
+-                   /SOTA config        -                   -                   Open the configuration interface
+-                   /SOTA log           -                   -                   Open the transaction log interface
+-                   /SOTA version       -                   -                   Check the SOTA versions running
+-                   /SOTA master        -                   -                   Force player to become Master (if he is raid leader or assistant)
 
-/gdhelp				/SOTA help			-					-					Show HELP page (more or less this page!)
+/gdhelp             /SOTA help          -                   -                   Show HELP page (more or less this page!)
 ]]
 
 
@@ -408,6 +409,13 @@ function SOTA_HandleSOTACommand(msg)
 			return SOTA_HandleQueueRequest(playername, msg);
 		end
 	end
+
+	-- Command: listqueue
+	--	Syntax: "listqueue"
+	if cmd == "listqueue" then
+		return SOTA_Call_ListQueue(playername);
+	end
+
 	
 	--	Command: addqueue
 	--	Syntax: "addqueue"
@@ -1066,7 +1074,7 @@ function SOTA_HandleGuildChatMessage(event, message, sender)
 	end
 
 	-- Only respond if you are master, or no master has yet been assigned:
-	if SOTA_IsMaster() or (not SOTA_master and SOTA_IsPromoted()) then
+	if SOTA_IsMaster() or (not(SOTA_Master) and SOTA_IsPromoted()) then
 		local command = string.sub(message, 2)
 		debugEcho("Master: Processing GChat command: ".. command);
 		SOTA_OnChatWhisper(event, command, sender);
@@ -1110,6 +1118,9 @@ function SOTA_OnChatWhisper(event, message, sender)
 		
 	elseif cmd == "queue" then
 		SOTA_HandleQueueRequest(sender, message);
+
+	elseif cmd == "listqueue" then
+		SOTA_Call_ListQueue(sender);
 		
 	elseif cmd == "leave" then		
 		if SOTA_RemoveFromRaidQueue(sender) then
@@ -3508,6 +3519,74 @@ function SOTA_GetGuildPlayerInfo(player)
 end
 
 
+--[[
+--	Whisper or print queue details.
+--	Since: 1.0.3
+--]]
+function SOTA_Call_ListQueue(receiver)
+	local qTank = "";
+	local qMelee = "";
+	local qRanged = "";
+	local qHealer = "";
+
+	for n=1, table.getn(RaidQueue), 1 do
+		if RaidQueue[n][3] == "tank" then
+			if qTank == "" then
+				qTank = RaidQueue[n][1];
+			else
+				qTank = qTank..", "..RaidQueue[n][1];
+			end
+		end;
+		
+		if RaidQueue[n][3] == "melee" then
+			if qMelee == "" then
+				qMelee = RaidQueue[n][1];
+			else
+				qMelee = qMelee..", "..RaidQueue[n][1];
+			end
+		end;
+
+		if RaidQueue[n][3] == "ranged" then
+			if qRanged == "" then
+				qRanged = RaidQueue[n][1];
+			else
+				qRanged = qRanged..", "..RaidQueue[n][1];
+			end
+		end;
+
+		if RaidQueue[n][3] == "healer" then
+			if qHealer == "" then
+				qHealer = RaidQueue[n][1];
+			else
+				qHealer = qHealer..", "..RaidQueue[n][1];
+			end
+		end;
+	end;
+	
+	whisper(receiver, "Players in queue:");
+	local queued = false;
+	if not(qTank == "") then
+		whisper(receiver, "(Tanks) "..qTank);
+		queued = true;
+	end;
+	if not(qMelee == "") then
+		whisper(receiver, "(Melees) "..qMelee);
+		queued = true;
+	end;
+	if not(qRanged == "") then
+		whisper(receiver, "(Ranged) "..qRanged);
+		queued = true;
+	end;
+	if not(qHealer == "") then
+		whisper(receiver, "(Healers) "..qHealer);
+		queued = true;
+	end;
+	if not queued then
+		whisper(receiver, "(Queue is empty)");
+	end;	
+end;
+
+
 
 --
 --	MinBidStrategy
@@ -3862,16 +3941,16 @@ function SOTA_OnQueuedPlayerClick(object, buttonname)
 		return;
 	end
 
-	-- Quit if player isnt in guild, or is offline:	
+	-- Quit if player isnt in guild:	
 	local playerinfo = SOTA_GetGuildPlayerInfo(playername);
-	if not(playerinfo) or (playerinfo[5] == 0) then
+	if not(playerinfo) then
 		return;
 	end
 	
 	-- Promote player to Master if none is currently set
 	SOTA_CheckForMaster();	
 
-	
+
 	if buttonname == "RightButton" then
 		StaticPopupDialogs["SOTA_POPUP_REMOVE_PLAYER"] = {
 			text = string.format("Remove %s from the raid queue?", playername),
@@ -3886,22 +3965,25 @@ function SOTA_OnQueuedPlayerClick(object, buttonname)
 		
 		StaticPopup_Show("SOTA_POPUP_REMOVE_PLAYER");
 	else
-		local playerrank = getglobal(object:GetName().."Rank"):GetText();
-		if (string.len(playerrank) > 7) and (string.sub(playerrank, 1, 7) == "Queue: ") then
-			if playername == "Tanks" then
-				SOTA_InviteQueuedPlayerGroup(playername, "tank");
-			elseif playername == "Melee" then
-				SOTA_InviteQueuedPlayerGroup(playername, "melee");
-			elseif playername == "Ranged" then
-				SOTA_InviteQueuedPlayerGroup(playername, "ranged");
-			elseif playername == "Healers" then
-				SOTA_InviteQueuedPlayerGroup(playername, "healer");
+		-- Invite player if he is online:
+		if (playerinfo[5] == 1) then
+			local playerrank = getglobal(object:GetName().."Rank"):GetText();
+			if (string.len(playerrank) > 7) and (string.sub(playerrank, 1, 7) == "Queue: ") then
+				if playername == "Tanks" then
+					SOTA_InviteQueuedPlayerGroup(playername, "tank");
+				elseif playername == "Melee" then
+					SOTA_InviteQueuedPlayerGroup(playername, "melee");
+				elseif playername == "Ranged" then
+					SOTA_InviteQueuedPlayerGroup(playername, "ranged");
+				elseif playername == "Healers" then
+					SOTA_InviteQueuedPlayerGroup(playername, "healer");
+				end
+				
+				return;
 			end
 			
-			return;
-		end
-		
-		SOTA_InviteQueuedPlayer(playername);	
+			SOTA_InviteQueuedPlayer(playername);	
+		end;
 	end
 end
 

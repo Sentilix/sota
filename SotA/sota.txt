@@ -1,7 +1,6 @@
 SotA - State of the Art
 
 
-
 Roadmap:
 0.7	Renamed to SOTA
 0.7.1:
@@ -83,14 +82,16 @@ Roadmap:
 	If a player is OFFLINE and online check is ticked off, he will still receive queue dkp.
 - Bugfix: Some settings was not persisted correct - fixed.
 - Update: UI now responds (closes) when pressing Escape.
-
+1.0.4:
+- Added !listqueue: returns the current queue.
+- Bugfix: Offline players can now be removed from raid queue via UI.
+- Bugfix: Whispers from non-SOTA Masters are now finally filtered off!
 
 
 Known issues:
 - Boss DKP values are not persisted (unable to reproduce)
 New features:
 - Auction contains a "Minimum Bid" field (needs a LAUCH button also?)
-- Command for outsiders to see queue (without having the addon)
 - Make whispers configurable
 Wishlist:
 - RaidQueue: (Janitor) Add a list of (lvl 60) players not in raid
