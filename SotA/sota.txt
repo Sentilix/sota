@@ -86,6 +86,14 @@ Roadmap:
 - Added !listqueue: returns the current queue.
 - Bugfix: Offline players can now be removed from raid queue via UI.
 - Bugfix: Whispers from non-SOTA Masters are now finally filtered off!
+1.1.0:
+- Bugfix: "endless time" (bidding) doesnt work ("0" stops bidding immediately)
+- add output channel: R/RW/Y/S/Guild/Custom
+TODO:
+- add dkp outside raid and do "bulk commits" (for guild donations)
+- bugfix: "you are not in the guild" bug when joining queue (often straight after logon).
+	* I might not be able to do anything about this, since the API is providing wrong info!
+
 
 
 Known issues:
@@ -97,6 +105,7 @@ Wishlist:
 - RaidQueue: (Janitor) Add a list of (lvl 60) players not in raid
 - AuctionUI: Add a CLOSE button, available for non-ML ("Spectators")
 - context menu!
+
 
 
 

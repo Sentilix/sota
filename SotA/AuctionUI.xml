@@ -388,6 +388,26 @@
 		</NormalTexture>
 	</Button>
 
+	<!-- template for a whisper combo box -->
+	<Frame name="SOTA_DropDownTemplate" inherits="UIDropDownMenuTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="200" y="32"/>
+		</Size>
+		<Anchors>
+			<Anchor point="LEFT">
+				<Offset>
+					<AbsDimension x="4" y="-4"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Scripts>
+			<OnLoad>
+				SOTA_DropDown_OnLoad(this);
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
+
 	<!-- Configuration frame template -->
 	<Frame name="SOTA_ConfigurationFrameTemplate" parent="UIParent" toplevel="true" hidden="true" virtual="true">
 		<Size>
@@ -1345,16 +1365,15 @@
 					</OnValueChanged>
 				</Scripts>
 			</Slider>
-			<!-- Enable OS bidding (MS>OS) ? -->
-			<CheckButton name="ConfigurationFrameOptionMSoverOSPriority" inherits="OptionsCheckButtonTemplate">
-				<Anchors>
+			<!-- Enable MS/OS bidding (MS>OS) ? -->
+			<CheckButton name="ConfigurationFrameOptionMSoverOSPriority" inherits="OptionsCheckButtonTemplate">				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-198"/>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnLoad>
-						getglobal(this:GetName().."Text"):SetText("Enable OS bidding (Mainspec over Offspec)")
+						getglobal(this:GetName().."Text"):SetText("Enable MS/OS bidding (Mainspec over Offspec)")
 					</OnLoad>
 					<OnClick>
 						SOTA_HandleCheckbox(this);
@@ -1409,6 +1428,37 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
+			<!-- Target channel combo box -->
+			<Frame name="ConfigurationFrameOptionChannel">
+				<Size>
+					<AbsDimension x="20" y="250" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="32" y="-308" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer>
+						<!-- Caption -->
+						<FontString name="$parentCaption" justifyH="LEFT" inherits="GameFontNormal">
+							<Size>
+								<AbsDimension x="130" y="20"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT">
+									<Offset>
+										<AbsDimension x="32" y="-2"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+
 			<!-- Configuration Frame 2: Boss DKP -->
 			<!-- 20 mans (ZG, AQ20) -->
 			<Slider name="ConfigurationFrameOption_20Mans" inherits="SOTA_BossDKPSlider">

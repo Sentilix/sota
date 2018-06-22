@@ -24,15 +24,25 @@ local WARN_CHANNEL				= "RAID_WARNING"
 local GUILD_CHANNEL				= "GUILD"
 local WHISPER_CHANNEL			= "WHISPER"
 
+local SOTA_CHANNELS = {
+	{ 'Raid Warning (/rw)',			WARN_CHANNEL },
+	{ 'Raid channel (/raid)',		RAID_CHANNEL },
+	{ 'Yell (/yell)',						YELL_CHANNEL },
+	{ 'Say (/say)',							SAY_CHANNEL },
+	{ 'Guild chat (/guild)',		GUILD_CHANNEL },
+}
+
 
 --	Settings (persisted)
 -- Pane 1:
-SOTA_CONFIG_AuctionTime				= 20
-SOTA_CONFIG_AuctionExtension	= 8
-SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
-SOTA_CONFIG_EnableZoneCheck		= 1;	-- Enable zone check when doing raid queue DKP
-SOTA_CONFIG_EnableOnlineCheck	= 1;	-- Enable online check when doing raid queue DKP
-SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
+SOTA_CONFIG_AuctionTime					= 20
+SOTA_CONFIG_AuctionExtension		= 8
+SOTA_CONFIG_EnableOSBidding			= 1;	-- Enable MS bidding over OS
+SOTA_CONFIG_EnableZoneCheck			= 1;	-- Enable zone check when doing raid queue DKP
+SOTA_CONFIG_EnableOnlineCheck		= 1;	-- Enable online check when doing raid queue DKP
+SOTA_CONFIG_DisableDashboard		= 0;	-- Disable Dashboard in UI (hide it)
+SOTA_CONFIG_OutputChannel				= WARN_CHANNEL;
+	
 
 -- Pane 2:
 SOTA_CONFIG_BossDKP								= { }
@@ -106,74 +116,74 @@ local JobIsRunning								= false
 --	Pre-requisites to become promoted (and master):
 --	* Can invite to Raid (raid leader/promoted)
 --	* (can read notes? is that needed? Doubt so)
-local CLIENT_STATE_SLAVE		= 0;		-- Client is only listening
-local CLIENT_STATE_HELPER		= 1;		-- Client was promoted (passive master)
-local CLIENT_STATE_MASTER		= 2;		-- Client issued a DKP command (active master)
-local CLIENT_IDENTIFIER			= time();	-- Unique client identifier: current time.
-local CLIENT_STATE				= CLIENT_STATE_SLAVE
+local CLIENT_STATE_SLAVE				= 0;		-- Client is only listening
+local CLIENT_STATE_HELPER				= 1;		-- Client was promoted (passive master)
+local CLIENT_STATE_MASTER				= 2;		-- Client issued a DKP command (active master)
+local CLIENT_IDENTIFIER					= time();	-- Unique client identifier: current time.
+local CLIENT_STATE							= CLIENT_STATE_SLAVE
 --]]
 
 --	For now the one issuing DKP or starting a BID round will be master. All other will be passive.
 --	Helper is not supported.
-local CLIENT_STATE_SLAVE		= 0;		-- Client is only listening
-local CLIENT_STATE_MASTER		= 2;		-- Client issued a DKP command (active master)
-local CLIENT_STATE				= CLIENT_STATE_SLAVE
+local CLIENT_STATE_SLAVE						= 0;		-- Client is only listening
+local CLIENT_STATE_MASTER						= 2;		-- Client issued a DKP command (active master)
+local CLIENT_STATE									= CLIENT_STATE_SLAVE
 
-local SOTA_Master				= nil;		-- Current master
+local SOTA_Master										= nil;	-- Current master
 
 
 
 
 -- Working variables:
-local RaidState					= RAID_STATE_DISABLED
-local AuctionedItemLink			= ""
-local AuctionState				= STATE_NONE
+local RaidState											= RAID_STATE_DISABLED
+local AuctionedItemLink							= ""
+local AuctionState									= STATE_NONE
 
 -- Raid Roster: table of raid players:		{ Name, DKP, Class, Rank, Online }
-local RaidRosterTable			= { }
+local RaidRosterTable								= { }
 -- Guild Roster: table of guild players:	{ Name, DKP, Class, Rank, Online, Zone }
-local GuildRosterTable			= { }
-local RaidRosterLazyUpdate		= false;
+local GuildRosterTable							= { }
+local RaidRosterLazyUpdate					= false;
 -- Max # of characters displayes per role in the Raid Queue UI. A caption will be inserted in top.
-local MAX_RAID_QUEUE_SIZE		= 8;
+local MAX_RAID_QUEUE_SIZE						= 8;
 -- Max # of transaction logs shown in UI (excluding Header)
-local MAX_TRANSACTIONS_DISPLAYED= 18;
+local MAX_TRANSACTIONS_DISPLAYED		= 18;
 -- Max # of lines for class dkp displayed locally:
-local MAX_CLASS_DKP_DISPLAYED	= 10;
--- Max # of lines for class dkp sent by whisper:
-local MAX_CLASS_DKP_WHISPERED	= 5;
+local MAX_CLASS_DKP_DISPLAYED				= 10;
+-- Max # of lines for class dkp	sent by whisper:
+local MAX_CLASS_DKP_WHISPERED				= 5;
 
 --	List of {jobname,name,dkp} tables
-local JobQueue					= { }
+local JobQueue											= { }
 --	Holds current Zone name - used for checking for new Zones(Instances primarily)
-local CurrentZoneName			= nil;
+local CurrentZoneName								= nil;
 -- Unique number for each queued raid member. Used for Sorting.
-local QueueID					= 1;
+local QueueID												= 1;
 -- Queued raid members: { Name, QueueID, Role , Class }
-local RaidQueue					= { }
+local RaidQueue											= { }
 
 --  Transaction log: Contains a list of { timestamp, tid, author, description, state, { names, dkp } }
 --	Transaction state: 0=Rolled back, 1=Active (default), 
-local transactionLog			= { }
+local transactionLog								= { }
 --	Current transactionID, starts out as 0 (=none).
-local currentTransactionID		= 0;
-local currentTransactionPage	= 1;	-- Current page shown (1=first page)
-local selectedTransactionID		= nil;
+local currentTransactionID					= 0;
+local currentTransactionPage				= 1;	-- Current page shown (1=first page)
+local selectedTransactionID					= nil;
 --	Sync.state: 0=idle, 1=initializing, 2=synchronizing
-local synchronizationState		= 0;
+local synchronizationState					= 0;
 --	Hold RX_SYNCINIT responses when querying for a client to sync. { message, id/count }
-local syncResults				= { };
-local syncRQResults				= { };
+local syncResults										= { };
+local syncRQResults									= { };
 
 --	# of transactions displayed in /gdlog
-local TRANSACTION_LIST_SIZE		= 5;
+local TRANSACTION_LIST_SIZE					= 5;
 --	# of player names displayed per line when posting transaction log into guild chat
 local TRANSACTION_PLAYERS_PER_LINE	= 8;
 local TRANSACTION_STATE_ROLLEDBACK	= 0;
-local TRANSACTION_STATE_ACTIVE		= 1;
+local TRANSACTION_STATE_ACTIVE			= 1;
 --	Setting for transaction details screen:
-local TRANSACTION_DETAILS_ROWS		= 18;
-local TRANSACTION_DETAILS_COLUMNS	= 4;
+local TRANSACTION_DETAILS_ROWS			= 18;
+local TRANSACTION_DETAILS_COLUMNS		= 4;
 
 
 
@@ -201,7 +211,7 @@ local CLASS_COLORS = {
 
 
 --[[
-	Echo a message for the local user only, including "logo"
+	Echo a message for the local user only, excluding "logo"
 ]]
 local function echo(msg)
 	if msg then
@@ -215,20 +225,13 @@ local function debugEcho(msg)
 	end
 end
 
-local function gEcho(msg)
+local function publicEcho(msg)
+	SendChatMessage(string.format("[%s] %s", SOTA_TITLE, msg), SOTA_CONFIG_OutputChannel);
+end;
+
+local function localEcho(msg)
 	echo("<"..COLOUR_INTRO..SOTA_TITLE..COLOUR_CHAT.."> "..msg);
-end
-
-local function rwEcho(msg)
-	SendChatMessage(msg, WARN_CHANNEL);
-end
-
---[[
-	SOTA specific RW: Apply <SotA> to message
-]]
-local function SOTA_rwEcho(msg)
-	rwEcho(string.format("[%s] %s", SOTA_TITLE, msg));
-end
+end;
 
 local function raidEcho(msg)
 	SendChatMessage(msg, RAID_CHANNEL);
@@ -244,7 +247,7 @@ end
 
 local function whisper(receiver, msg)
 	if receiver == UnitName("player") then
-		gEcho(msg);
+		localEcho(msg);
 	else
 		SendChatMessage(msg, WHISPER_CHANNEL, nil, receiver);
 	end
@@ -367,7 +370,7 @@ function SOTA_HandleSOTACommand(msg)
 		if SOTA_IsInRaid(true) then
 			addonEcho("TX_VERSION##");
 		else
-			gEcho(string.format("%s is using SOTA version %s", UnitName("player"), GetAddOnMetadata("SOTA", "Version")));
+			localEcho(string.format("%s is using SOTA version %s", UnitName("player"), GetAddOnMetadata("SOTA", "Version")));
 		end
 		return;
 	end
@@ -456,7 +459,7 @@ function SOTA_HandleSOTACommand(msg)
 			arg = string.sub(arg, 2);
 			return SOTA_Call_AddRaidDKP(arg);
 		else
-			gEcho("DKP must be written as +999 or -999");
+			localEcho("DKP must be written as +999 or -999");
 			return;
 		end
 	end
@@ -480,7 +483,7 @@ function SOTA_HandleSOTACommand(msg)
 		if not arg or arg == "" then
 			arg = SOTA_GetMinimumBid() * 10;
 			if arg == 0 then
-				gEcho("Boss DKP value could not be calculated - DKP was not shared.");
+				localEcho("Boss DKP value could not be calculated - DKP was not shared.");
 				return;
 			end
 		else
@@ -502,7 +505,7 @@ function SOTA_HandleSOTACommand(msg)
 		if not arg or arg == "" then
 			arg = SOTA_GetMinimumBid() * 10;
 			if arg == 0 then
-				gEcho("Boss DKP value could not be calculated - DKP was not shared.");
+				localEcho("Boss DKP value could not be calculated - DKP was not shared.");
 				return;
 			end
 		else
@@ -549,26 +552,26 @@ function SOTA_HandleSOTACommand(msg)
 		end
 	end
 	
-	gEcho("Unknown command: ".. msg);
+	localEcho("Unknown command: ".. msg);
 end
 
 
 function SOTA_DisplayHelp()
-	gEcho(string.format("SOTA version %s options:", GetAddOnMetadata("SOTA", "Version")));
-	gEcho("Syntax: /sota [option], where options are:");
+	localEcho(string.format("SOTA version %s options:", GetAddOnMetadata("SOTA", "Version")));
+	localEcho("Syntax: /sota [option], where options are:");
 	--	DKP request options:
-	gEcho("DKP Requests:");
+	localEcho("DKP Requests:");
 	echo("  DKP <p>    Show how much DKP the player <p> currently have. Default is current player.");
 	echo("  Class <c>    Show top 10 DKP for the class <c>. Default is the current player's class.");
 	echo("");
 	--	Player DKP:
-	gEcho("Player DKP:");
+	localEcho("Player DKP:");
 	echo("  +<dkp> <p>    Add <dkp> to the player <p>.");
 	echo("  -<dkp> <p>    Subtract <dkp> from the player <p>.");
 	echo("  -<pct>% <p>    Subtract <pct> % DKP from the player <p>. A minimum subtracted amount can be configured in the DKP options.");
 	echo("");
 	--	Raid DKP:
-	gEcho("Raid DKP:");
+	localEcho("Raid DKP:");
 	echo("  raid +<dkp>    Add <dkp> to all players in raid and in raid queue.");
 	echo("  raid -<dkp>    Subtract <dkp> from all players in raid and in raid queue.");
 	echo("  range +<dkp>    Add <dkp> to all players in 100 yards range.");
@@ -576,12 +579,12 @@ function SOTA_DisplayHelp()
 	echo("  decay <pct>%    Remove <pct> percent DKP from every player in the guild.");
 	echo("");
 	--	Queue options:
-	gEcho("Raid Queue:");
+	localEcho("Raid Queue:");
 	echo("  queue    Get current queue status (number of people in queue)");
 	echo("  addqueue <p> <r>    Manually add the player <p> to the raid queue with role <r>.");
 	echo("");
 	--	Misc:
-	gEcho("Miscellaneous:");
+	localEcho("Miscellaneous:");
 	echo("  Config    Open the SotA configuration screen.");
 	echo("  Log    Open the SotA transaction log screen.");
 	echo("  Master    Request SotA master status.");
@@ -590,7 +593,7 @@ function SOTA_DisplayHelp()
 	echo("  Help    (default) This help!");
 	echo("");
 	--	Chat options (Guild chat and Raid chat):
-	gEcho("Guild/Raid chat commands:");
+	localEcho("Guild/Raid chat commands:");
 	echo("  !queue    Get current queue status (number of people in queue)");
 	echo("  !queue <r>    Queue as role <r>; <r> can be tank, melee, ranged or healer");
 	echo("  !leave    Leave the raid queue.");
@@ -615,13 +618,13 @@ function SOTA_Call_CheckPlayerDKP(playername, sender)
 		if sender then
 			whisper(sender, string.format("%s have %d DKP.", playername, dkp));
 		else
-			gEcho(string.format("%s have %d DKP.", playername, dkp));
+			localEcho(string.format("%s have %d DKP.", playername, dkp));
 		end
 	else
 		if sender then
 			whisper(sender, string.format("There are no DKP information for %s.", playername));
 		else
-			gEcho(string.format("There are no DKP information for %s.", playername));
+			localEcho(string.format("There are no DKP information for %s.", playername));
 		end
 	end
 end
@@ -651,10 +654,10 @@ function SOTA_Call_CheckClassDKP(playerclass, sender)
 			end
 		end
 	else
-		gEcho(string.format("Top %d DKP for %ss:", MAX_CLASS_DKP_DISPLAYED, playerclass));
+		localEcho(string.format("Top %d DKP for %ss:", MAX_CLASS_DKP_DISPLAYED, playerclass));
 		for n=1, table.getn(classtable), 1 do
 			if n <= MAX_CLASS_DKP_DISPLAYED then
-				gEcho(string.format("%d - %s: %d DKP", n, classtable[n][1], 1*(classtable[n][2])));
+				localEcho(string.format("%d - %s: %d DKP", n, classtable[n][1], 1*(classtable[n][2])));
 			end
 		end
 	end
@@ -705,7 +708,7 @@ end
 --]]
 function SOTA_RequestSOTAMaster()
 	if CLIENT_STATE == CLIENT_STATE_MASTER then
-		gEcho("You are already SOTA Master.");
+		localEcho("You are already SOTA Master.");
 	else
 		SOTA_RequestMaster();
 	end
@@ -719,7 +722,7 @@ function SOTA_RequestMaster(silentmode)
 		if silentmode then
 			debugEcho(string.format("Player %s have raid rank %d", playername, rank));
 		else
-			gEcho("You must be promoted before you can be a SOTA Master!");
+			localEcho("You must be promoted before you can be a SOTA Master!");
 		end
 		return;
 	end
@@ -728,7 +731,7 @@ function SOTA_RequestMaster(silentmode)
 
 	if not silentmode then
 		if not CLIENT_STATE == CLIENT_STATE_MASTER then
-			gEcho("You are now SOTA Master.");
+			localEcho("You are now SOTA Master.");
 		end	
 	end
 	
@@ -901,7 +904,7 @@ end
 function SOTA_StartAuction(itemLink)
 	local rank = SOTA_GetRaidRank(UnitName("player"));
 	if rank < 1 then
-		gEcho("You need to be Raid Assistant or Raid Leader to start auctions.");
+		localEcho("You need to be Raid Assistant or Raid Leader to start auctions.");
 		return;
 	end
 
@@ -914,7 +917,7 @@ function SOTA_StartAuction(itemLink)
 	-- Extract ItemId from itemLink string:
 	local _, _, itemId = string.find(itemLink, "item:(%d+):")
 	if not itemId then
-		gEcho("Item was not found: ".. itemLink);
+		localEcho("Item was not found: ".. itemLink);
 		return;
 	end
 
@@ -1025,31 +1028,38 @@ function SOTA_CheckAuctionState()
 		
 	if state == STATE_AUCTION_RUNNING then
 		local secs = SOTA_GetSecondCounter();
+		
 		if secs == SOTA_CONFIG_AuctionTime then
-			SOTA_rwEcho(string.format("Auction open for %s", AuctionedItemLink));
-			SOTA_rwEcho(string.format("/w %s bid <your bid>", UnitName("Player")))
-			SOTA_rwEcho(string.format("Minimum bid: %d DKP", SOTA_GetMinimumBid()));
+			publicEcho(string.format("Auction open for %s", AuctionedItemLink));
+			publicEcho(string.format("/w %s bid <your bid>", UnitName("Player")))
+			publicEcho(string.format("Minimum bid: %d DKP", SOTA_GetMinimumBid()));
 		end
 		
-		if secs == 10 then
-			SOTA_rwEcho(string.format("10 seconds left for %s", AuctionedItemLink));
-			SOTA_rwEcho(string.format("/w %s bid <your bid>", UnitName("Player")));
-		end
-		if secs == 3 then
-			SOTA_rwEcho("3 seconds left");
-		end
-		if secs == 2 then
-			SOTA_rwEcho("2 seconds left");
-		end
-		if secs == 1 then
-			SOTA_rwEcho("1 second left");
-		end
-		if secs < 1 then
-			-- Time is up - complete the auction:
-			SOTA_FinishAuction(sender, dkp);	
-		end
-				
-		Seconds = Seconds - 1;
+		if SOTA_CONFIG_AuctionTime > 0 then
+			if secs == 10 then
+				publicEcho(string.format("10 seconds left for %s", AuctionedItemLink));
+				publicEcho(string.format("/w %s bid <your bid>", UnitName("Player")));
+			end
+			if secs == 3 then
+				publicEcho("3 seconds left");
+			end
+			if secs == 2 then
+				publicEcho("2 seconds left");
+			end
+			if secs == 1 then
+				publicEcho("1 second left");
+			end
+			if secs < 1 then
+				-- Time is up - complete the auction:
+				SOTA_FinishAuction(sender, dkp);	
+			end
+			
+			Seconds = Seconds - 1;
+		else
+			-- "endless" timer: set second to 1, so we dont keep triggering Auction Open event!
+			Seconds = 1;
+		end;
+		
 	end
 	
 	if state == STATE_COMPLETE then
@@ -1216,9 +1226,9 @@ function SOTA_HandlePlayerBid(sender, message)
 	local bidderRank  = playerInfo[4];
 	
 	if bidtype == 2 then
-		SOTA_rwEcho(string.format("%s is bidding %d Off-spec for %s", sender, dkp, AuctionedItemLink));
+		publicEcho(string.format("%s is bidding %d Off-spec for %s", sender, dkp, AuctionedItemLink));
 	else
-		SOTA_rwEcho(string.format("%s is bidding %d DKP for %s", sender, dkp, AuctionedItemLink));
+		publicEcho(string.format("%s (%s) is bidding %d DKP for %s", sender, bidderRank, dkp, AuctionedItemLink));
 	end
 	
 
@@ -1370,7 +1380,7 @@ function SOTA_AcceptBid(playername, bid)
 	
 		AuctionUIFrame:Hide();
 		
-		SOTA_rwEcho(string.format("%s sold to %s for %d DKP.", AuctionedItemLink, playername, bid));
+		publicEcho(string.format("%s sold to %s for %d DKP.", AuctionedItemLink, playername, bid));
 		
 		SOTA_SubtractPlayerDKP(playername, bid);		
 	end
@@ -1423,7 +1433,7 @@ function SOTA_InviteQueuedPlayer(playername)
 	local qInfo = SOTA_GetQueuedPlayer(playername);
 
 	if not qInfo then
-		gEcho("Player "..playername.." is not queued!");
+		localEcho("Player "..playername.." is not queued!");
 		return;
 	end
 
@@ -1447,7 +1457,7 @@ function SOTA_RemoveQueuedPlayerGroupNow(playername)
 		return;
 	end
 
-	gEcho("Removing ".. playername .." from queue");
+	localEcho("Removing ".. playername .." from queue");
 
 	SOTA_RemoveFromRaidQueue(playername);
 
@@ -1537,7 +1547,7 @@ function SOTA_AddToRaidQueueByName(args)
 	if args then
 		local _, _, playername, playerrole = string.find(args, "(%S+) (%S+)")		
 		if not playername or not playerrole then	
-			gEcho("Syntax: /sota addqueue <playername> <playerrole>");
+			localEcho("Syntax: /sota addqueue <playername> <playerrole>");
 			
 		else
 			if SOTA_AddToRaidQueue(playername, playerrole, true) then
@@ -1891,6 +1901,8 @@ function SOTA_InitializeTableElements()
 			id = id + 1;
 		end
 	end	
+	
+	SOTA_InitCombobox();
 end
 
 --	Show top <n> in bid window
@@ -2350,7 +2362,7 @@ function SOTA_CancelSelectedPlayerBid()
 		if bid == 0 then
 			bid = SOTA_GetMinimumBid();
 		end
-		SOTA_rwEcho(string.format("Minimum bid: %d DKP", bid));
+		publicEcho(string.format("Minimum bid: %d DKP", bid));
 	end
 end
 
@@ -2367,12 +2379,12 @@ function SOTA_PauseAuction()
 	
 	if state == STATE_AUCTION_RUNNING then
 		SOTA_SetAuctionState(STATE_AUCTION_PAUSED, secs);
-		SOTA_rwEcho("Auction have been Paused");
+		publicEcho("Auction have been Paused");
 	end
 	
 	if state == STATE_AUCTION_PAUSED then
 		SOTA_SetAuctionState(STATE_AUCTION_RUNNING, secs + SOTA_CONFIG_AuctionExtension);
-		SOTA_rwEcho("Auction have been Resumed");
+		publicEcho("Auction have been Resumed");
 	end
 
 	SOTA_RefreshButtonStates();
@@ -2386,7 +2398,7 @@ end
 function SOTA_FinishAuction()
 	local state = SOTA_GetAuctionState();
 	if state == STATE_AUCTION_RUNNING or state == STATE_AUCTION_PAUSED then
-		SOTA_rwEcho(string.format("Auction for %s is over", AuctionedItemLink));
+		publicEcho(string.format("Auction for %s is over", AuctionedItemLink));
 		SOTA_SetAuctionState(STATE_AUCTION_COMPLETE);
 		
 		-- Check if a player was selected; if not, select highest bid:
@@ -2410,7 +2422,7 @@ function SOTA_CancelAuction()
 	if state == STATE_AUCTION_RUNNING or state == STATE_AUCTION_PAUSED then
 		IncomingBidsTable = { }
 		SOTA_SetAuctionState(STATE_AUCTION_NONE);
-		SOTA_rwEcho("Auction was Cancelled");		
+		publicEcho("Auction was Cancelled");		
 	end
 	
 	AuctionUIFrame:Hide();
@@ -2536,14 +2548,14 @@ function SOTA_CanDoDKP(silentmode)
 
 	if not SOTA_CanWriteNotes() then
 		if not silentmode then
-			gEcho("You do not have access to change notes!");
+			localEcho("You do not have access to change notes!");
 		end
 		return false;
 	end
 
 	if not SOTA_IsPromoted() then
 		if not silentmode then
-			gEcho("You are not promoted!");
+			localEcho("You are not promoted!");
 		end
 		return false;
 	end
@@ -2583,7 +2595,7 @@ function SOTA_AddPlayerDKP(playername, dkpValue, silentmode)
 	if SOTA_ApplyPlayerDKP(playername, dkpValue) then
 		playername = SOTA_UCFirst(playername);
 		if not silentmode then
-			SOTA_rwEcho(string.format("%d DKP was added to %s", dkpValue, playername));
+			publicEcho(string.format("%d DKP was added to %s", dkpValue, playername));
 		end
 		SOTA_LogSingleTransaction("+Player", playername, dkpValue);
 	end
@@ -2623,7 +2635,7 @@ function SOTA_SwapPlayersInTransaction(transactionID, newPlayer, silentmode)
 			originalPlayer = SOTA_UCFirst(originalPlayer);
 			SOTA_LogSingleTransaction("-Swap", originalPlayer, -1 * dkpValue);
 			
-			SOTA_rwEcho(string.format("%s was replaced with %s (%d DKP)", originalPlayer, newPlayer, dkpValue));
+			publicEcho(string.format("%s was replaced with %s (%d DKP)", originalPlayer, newPlayer, dkpValue));
 		end
 	end
 end
@@ -2644,7 +2656,7 @@ function SOTA_SubtractPlayerDKP(playername, dkpValue, silentmode)
 	if SOTA_ApplyPlayerDKP(playername, dkpValue) then
 		playername = SOTA_UCFirst(playername);
 		if not silentmode then
-			SOTA_rwEcho(string.format("%d DKP was subtracted from %s", abs(dkpValue), playername));
+			publicEcho(string.format("%d DKP was subtracted from %s", abs(dkpValue), playername));
 		end
 		SOTA_LogSingleTransaction("-Player", playername, dkpValue);
 	end
@@ -2672,13 +2684,13 @@ function SOTA_SubtractPlayerDKPPercent(playername, percent, silentmode)
 		SOTA_ApplyPlayerDKP(playername, -1 * minus, true);
 		
 		if not silentmode then
-			SOTA_rwEcho(string.format("%d %% (%d DKP) was subtracted from %s", percent, minus, playername));
+			publicEcho(string.format("%d %% (%d DKP) was subtracted from %s", percent, minus, playername));
 		end
 
 		SOTA_LogSingleTransaction("%Player", playername, -1 * abs(minus));
 	else
 		if not silentmode then
-			gEcho(string.format("Player %s was not found", playername));
+			localEcho(string.format("Player %s was not found", playername));
 		end
 	end
 end
@@ -2734,14 +2746,14 @@ function SOTA_AddRaidDKP(dkp, silentmode, callMethod)
 	
 				-- Player is OFFLINE, skip if not allowed
 				if guildInfo[5] == 0 and onlinecheck == 1 then
-					gEcho(string.format("No queue DKP for %s (Offline)", RaidQueue[n][1]));
+					localEcho(string.format("No queue DKP for %s (Offline)", RaidQueue[n][1]));
 					eligibleForDKP = false;
 				end
 				
 				-- Player is not in raid zone
 				if eligibleForDKP and guildInfo[5] == 1 and zonecheck == 1 then
 						if not(guildInfo[6] == instance or guildInfo[6] == zonename) then
-							gEcho(string.format("No queue DKP for %s (location: %s)", RaidQueue[n][1], guildInfo[6]));
+							localEcho(string.format("No queue DKP for %s (location: %s)", RaidQueue[n][1], guildInfo[6]));
 							eligibleForDKP = false;
 						end;
 				end;
@@ -2756,7 +2768,7 @@ function SOTA_AddRaidDKP(dkp, silentmode, callMethod)
 		end
 		
 		if not silentmode then
-			SOTA_rwEcho(string.format("%d DKP was added to all players in raid", dkp));
+			publicEcho(string.format("%d DKP was added to all players in raid", dkp));
 		end
 		
 		SOTA_LogMultipleTransactions(callMethod, tidChanges)				
@@ -2806,7 +2818,7 @@ function SOTA_SubtractRaidDKP(dkp, silentmode, callMethod)
 		end
 		
 		if not silentmode then
-			SOTA_rwEcho(string.format("%d DKP was subtracted from all players in raid", abs(dkp)));
+			publicEcho(string.format("%d DKP was subtracted from all players in raid", abs(dkp)));
 		end
 
 		SOTA_LogMultipleTransactions(callMethod, tidChanges)
@@ -2867,9 +2879,9 @@ function SOTA_AddRangedDKP(dkp, silentmode, dkpLabel)
 	
 	if not silentmode then
 		if SOTA_QueuedPlayersImpacted == 0 then
-			SOTA_rwEcho(string.format("%d DKP has been added for %d players in range.", dkp, raidUpdateCount));
+			publicEcho(string.format("%d DKP has been added for %d players in range.", dkp, raidUpdateCount));
 		else
-			SOTA_rwEcho(string.format("%d DKP has been added for %d players in range (plus %d in queue).", dkp, raidUpdateCount, SOTA_QueuedPlayersImpacted));
+			publicEcho(string.format("%d DKP has been added for %d players in range (plus %d in queue).", dkp, raidUpdateCount, SOTA_QueuedPlayersImpacted));
 		end;
 	end
 	
@@ -2941,9 +2953,9 @@ function SOTA_ShareDKP(sharedDkp)
 		
 		if SOTA_AddRaidDKP(dkp, true, "+Share") then
 			if SOTA_QueuedPlayersImpacteded == 0 then
-				SOTA_rwEcho(string.format("%d DKP was shared (%s DKP per player)", sharedDkp, dkp));
+				publicEcho(string.format("%d DKP was shared (%s DKP per player)", sharedDkp, dkp));
 			else
-				SOTA_rwEcho(string.format("%d DKP was shared (%s DKP per player plus %d in queue)", sharedDkp, dkp, SOTA_QueuedPlayersImpacteded));
+				publicEcho(string.format("%d DKP was shared (%s DKP per player plus %d in queue)", sharedDkp, dkp, SOTA_QueuedPlayersImpacteded));
 			end;
 		end
 		return true;
@@ -2971,9 +2983,9 @@ function SOTA_ShareRangedDKP(sharedDkp)
 		if inRange > 0 then
 			local dkp = ceil(sharedDkp / inRange);
 			if SOTA_QueuedPlayersImpacted == 0 then
-				SOTA_rwEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player)", sharedDkp, inRange, dkp));
+				publicEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player)", sharedDkp, inRange, dkp));
 			else
-				SOTA_rwEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player plus %d in queue)", sharedDkp, inRange, dkp, SOTA_QueuedPlayersImpacted));
+				publicEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player plus %d in queue)", sharedDkp, inRange, dkp, SOTA_QueuedPlayersImpacted));
 			end;
 		end
 		return true;
@@ -3000,7 +3012,7 @@ function SOTA_DecayDKP(percent, silentmode)
 	
 	if not tonumber(percent) then
 		if not silentmode then
-			gEcho("Guild Decay cancelled: Percent is not a valid number: ".. percent);
+			localEcho("Guild Decay cancelled: Percent is not a valid number: ".. percent);
 		end
 		return false;
 	end
@@ -3011,7 +3023,7 @@ function SOTA_DecayDKP(percent, silentmode)
 	--	Otherwise offline members will not get decayed!
 	if not GetGuildRosterShowOffline() == 1 then
 		if not silentmode then
-			gEcho("Guild Decay cancelled: You need to enable Offline Guild Members in the guild roster first.")
+			localEcho("Guild Decay cancelled: You need to enable Offline Guild Members in the guild roster first.")
 		end
 		return false;
 	end
@@ -3123,7 +3135,7 @@ function SOTA_IncludePlayer(transactionID, playername, silentmode, skipApplyDkp)
 		if SOTA_ApplyPlayerDKP(playername, dkpValue) then
 			SOTA_LogIncludeExcludeTransaction("Include", playername, transactionID, dkpValue);
 
-			gEcho(string.format("%s was included in transaction %d for %d DKP", playername, transactionID, dkpValue));
+			localEcho(string.format("%s was included in transaction %d for %d DKP", playername, transactionID, dkpValue));
 		end
 	end
 end
@@ -3192,7 +3204,7 @@ function SOTA_ExcludePlayer(transactionID, playername, silentmode, skipApplyDkp)
 	if not skipApplyDkp then
 		if SOTA_ApplyPlayerDKP(playername, -1 * dkpValue) then
 			SOTA_LogIncludeExcludeTransaction("Exclude", playername, transactionID, dkpValue);			
-			gEcho(string.format("%s was excluded from transaction %d for %d DKP", playername, transactionID, dkpValue));
+			localEcho(string.format("%s was excluded from transaction %d for %d DKP", playername, transactionID, dkpValue));
 		end
 	end
 end
@@ -3237,7 +3249,7 @@ function SOTA_ApplyPlayerDKP(playername, dkpValue, silentmode)
    	end
    	
    	if not silentmode then
-   		gEcho(string.format("%s was not found in the guild; DKP was not updated.", playername));
+   		localEcho(string.format("%s was not found in the guild; DKP was not updated.", playername));
    	end
    	return false;
 end
@@ -3402,7 +3414,7 @@ end
 
 function SOTA_RequestUndoTransaction(transactionID)
 	if not SOTA_CanWriteNotes() then
-		gEcho("Sorry, you do not have access to the DKP notes.");
+		localEcho("Sorry, you do not have access to the DKP notes.");
 		return;
 	end;
 	
@@ -3755,7 +3767,7 @@ end
 function SOTA_IsInRaid(silentMode)
 	local result = ( GetNumRaidMembers() > 0 )
 	if not silentMode and not result then
-		gEcho("You must be in a raid!");
+		localEcho("You must be in a raid!");
 	end
 	return result
 end
@@ -3810,9 +3822,84 @@ end
 --	Button handlers:
 --]]
 
+
+function SOTA_DropDown_OnLoad(object)	
+	local msg = object:GetName();
+	local msgID = string.sub(msg, string.len(msg), string.len(msg));
+	 
+	UIDropDownMenu_Initialize(this, function() SOTA_InitializeDropDown(tonumber(msgID)) end );
+end
+
+
+function SOTA_InitCombobox()
+	local plrEntry = CreateFrame("Frame", "$parentEntry1", ConfigurationFrameOptionChannel, "SOTA_DropdownTemplate");
+	plrEntry:SetID(1);
+	plrEntry:SetPoint("TOPLEFT", 128, 0);
+	
+	local plrFrame = getglobal("ConfigurationFrameOptionChannelEntry1");
+	UIDropDownMenu_SetWidth(128, plrFrame);
+	plrFrame:Show();	
+	
+	SOTA_RefreshDropDownBoxes();
+end;
+
+
+function SOTA_InitializeDropDown(msgID)
+	local dropdown, info;
+	
+	if ( UIDROPDOWNMENU_OPEN_MENU ) then
+		dropdown = getglobal(UIDROPDOWNMENU_OPEN_MENU);
+	else
+		dropdown = this;
+	end
+	
+	local playername;
+	for n=1, table.getn(SOTA_CHANNELS), 1 do	-- { Channel name, Channel Identifier }	
+		local info = { };
+		info.msgID = msgID;
+		info.text = SOTA_CHANNELS[n][1];
+		info.channelId = SOTA_CHANNELS[n][2];
+		info.checked = (SOTA_CONFIG_OutputChannel == SOTA_CHANNELS[n][2])
+		info.func = function() SOTA_OnDropDownClick(info) end;
+		UIDropDownMenu_AddButton(info);
+	end
+end
+
+
+function SOTA_OnDropDownClick(info)	
+	SOTA_CONFIG_OutputChannel = info.channelId;
+	localEcho(string.format("Output channel changed to %s.", info.text));
+	
+	SOTA_RefreshDropDownBoxes();	
+end;
+
+
+--[[
+--
+--	Refresh the dropdown boxes
+--
+--]]
+function SOTA_RefreshDropDownBoxes()	
+	local channelName = SOTA_CHANNELS[1][1];
+	
+	for n=1, table.getn(SOTA_CHANNELS), 1 do
+		if (SOTA_CHANNELS[n][2] == SOTA_CONFIG_OutputChannel) then
+			channelName = SOTA_CHANNELS[n][1];
+			break;
+		end;
+	end;
+
+	local dropdown = getglobal("ConfigurationFrameOptionChannelEntry1");	
+	UIDropDownMenu_SetSelectedName(dropdown, channelName);
+	
+	local dropdown = getglobal("ConfigurationFrameOptionChannelCaption");
+	dropdown:SetText('Output channel');	
+end
+
+
+
 function SOTA_HandleCheckbox(checkbox)
 	local checkboxname = checkbox:GetName();
-	--echo(string.format("Checkbox: %s", checkboxname))
 
 	--	Enable MS>OS priority:		
 	if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" then
@@ -4252,7 +4339,7 @@ end
 --	A version response (RX) was received. The version information is displayed locally.
 --]]
 local function SOTA_HandleRXVersion(message, sender)
-	gEcho(string.format("%s is using %s version %s", sender, SOTA_TITLE, message));
+	localEcho(string.format("%s is using %s version %s", sender, SOTA_TITLE, message));
 end
 
 
@@ -4780,23 +4867,10 @@ function SOTA_OnZoneChanged()
 				zonetext = zonetext .." (Emerald Dream)";
 			end
 			
-			gEcho(string.format("Instance: "..COLOUR_INTRO.."%s"..COLOUR_CHAT, zonetext));
-			gEcho(string.format("Boss value: "..COLOUR_INTRO.."%s"..COLOUR_CHAT.." DKP", dkp*10));
-			gEcho(string.format("Minimum bid: "..COLOUR_INTRO.."%s"..COLOUR_CHAT.." DKP", dkp));
+			localEcho(string.format("Instance: "..COLOUR_INTRO.."%s"..COLOUR_CHAT, zonetext));
+			localEcho(string.format("Boss value: "..COLOUR_INTRO.."%s"..COLOUR_CHAT.." DKP", dkp*10));
+			localEcho(string.format("Minimum bid: "..COLOUR_INTRO.."%s"..COLOUR_CHAT.." DKP", dkp));
 		end
-
-		-- -- debugging:
-		-- SetMapToCurrentZone();
-		-- local posX, posY = GetPlayerMapPosition("player");
-		-- echo("X: ".. posX ..", Y: ".. posY);
-
-
-		-- local subzone = GetSubZoneText();
-		-- if subzone then
-			-- debugEcho(string.format("Entering %s - sub zone %s", zonetext, subzone));
-		-- else
-			-- debugEcho(string.format("Entering %s", zonetext));
-		-- end
 	end
 end
 
@@ -4830,12 +4904,15 @@ function SOTA_InitializeConfigSettings()
 	if not SOTA_CONFIG_DisableDashboard then
 		SOTA_CONFIG_DisableDashboard = 1;
 	end
+	if not SOTA_CONFIG_OutputChannel then
+		SOTA_CONFIG_OutputChannel = WARN_CHANNEL;
+	end
 	
 	getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
 	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZoneCheck);
 	getglobal("ConfigurationFrameOptionEnableOnlinecheck"):SetChecked(SOTA_CONFIG_EnableOnlineCheck);
 	getglobal("ConfigurationFrameOptionDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
-
+	SOTA_RefreshDropDownBoxes();
 
 	if SOTA_CONFIG_UseGuildNotes == 1 then
 		getglobal("ConfigurationFrameOptionPublicNotes"):SetChecked(1)
@@ -4875,7 +4952,7 @@ function SOTA_OnEvent(event, arg1, arg2, arg3, arg4, arg5)
 end
 
 function SOTA_OnLoad()
-	gEcho(string.format("Loot Distribution Addon version %s by %s", GetAddOnMetadata("SOTA", "Version"), GetAddOnMetadata("SOTA", "Author")));
+	localEcho(string.format("Loot Distribution Addon version %s by %s", GetAddOnMetadata("SOTA", "Version"), GetAddOnMetadata("SOTA", "Author")));
     
 	this:RegisterEvent("ADDON_LOADED");
 	this:RegisterEvent("GUILD_ROSTER_UPDATE");
