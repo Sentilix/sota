@@ -1764,6 +1764,8 @@ function SOTA_CloseConfigurationElements(headline)
 	ConfigurationFrameOptionEnableZonecheck:Hide();
 	ConfigurationFrameOptionEnableOnlinecheck:Hide();
 	ConfigurationFrameOptionDisableDashboard:Hide();
+	ConfigurationFrameOptionChannel:Hide();
+
 	-- ConfigurationFrame2:
 	ConfigurationFrameOption_20Mans:Hide();
 	ConfigurationFrameOption_MoltenCore:Hide();
@@ -1794,6 +1796,7 @@ function SOTA_OpenConfigurationFrame1()
 	ConfigurationFrameOptionEnableZonecheck:Show();
 	ConfigurationFrameOptionEnableOnlinecheck:Show();
 	ConfigurationFrameOptionDisableDashboard:Show();
+	ConfigurationFrameOptionChannel:Show();
 	
 	ConfigurationFrame:Show();	
 end
@@ -3832,11 +3835,11 @@ end
 
 
 function SOTA_InitCombobox()
-	local plrEntry = CreateFrame("Frame", "$parentEntry1", ConfigurationFrameOptionChannel, "SOTA_DropdownTemplate");
+	local plrEntry = CreateFrame("Frame", "$parentCombobox", ConfigurationFrameOptionChannel, "SOTA_DropdownTemplate");
 	plrEntry:SetID(1);
 	plrEntry:SetPoint("TOPLEFT", 128, 0);
 	
-	local plrFrame = getglobal("ConfigurationFrameOptionChannelEntry1");
+	local plrFrame = getglobal("ConfigurationFrameOptionChannelCombobox");
 	UIDropDownMenu_SetWidth(128, plrFrame);
 	plrFrame:Show();	
 	
@@ -3889,11 +3892,11 @@ function SOTA_RefreshDropDownBoxes()
 		end;
 	end;
 
-	local dropdown = getglobal("ConfigurationFrameOptionChannelEntry1");	
+	local dropdown = getglobal("ConfigurationFrameOptionChannelCombobox");	
 	UIDropDownMenu_SetSelectedName(dropdown, channelName);
 	
 	local dropdown = getglobal("ConfigurationFrameOptionChannelCaption");
-	dropdown:SetText('Output channel');	
+	dropdown:SetText("Output channel");	
 end
 
 
@@ -4028,12 +4031,7 @@ function SOTA_OnQueuedPlayerClick(object, buttonname)
 		return;
 	end
 
-	-- Quit if player isnt in guild:	
-	local playerinfo = SOTA_GetGuildPlayerInfo(playername);
-	if not(playerinfo) then
-		return;
-	end
-	
+
 	-- Promote player to Master if none is currently set
 	SOTA_CheckForMaster();	
 
@@ -4052,6 +4050,12 @@ function SOTA_OnQueuedPlayerClick(object, buttonname)
 		
 		StaticPopup_Show("SOTA_POPUP_REMOVE_PLAYER");
 	else
+		-- Quit if player isnt in guild:	
+		local playerinfo = SOTA_GetGuildPlayerInfo(playername);
+		if not(playerinfo) then
+			return;
+		end
+
 		-- Invite player if he is online:
 		if (playerinfo[5] == 1) then
 			local playerrank = getglobal(object:GetName().."Rank"):GetText();
@@ -4666,7 +4670,6 @@ end
 	(/gdclass and /gdstat)
 ]]
 function SOTA_RefreshGuildRoster()
-	--echo("Refreshing GuildRoster");
 	
 	if not SOTA_CanReadNotes() then
 		return;
