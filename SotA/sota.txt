@@ -90,9 +90,11 @@ Roadmap:
 DONE:
 - Bugfix: "endless time" (bidding) doesnt work ("0" stops bidding immediately)
 - Bugfix: Remove non-guildies from queue!
-- add output channel: R/RW/Y/S/Guild/Custom
+- Added: Messages can now be sent to R/RW/Y/S/Guild/Custom
+- Added: /decaytest - check a DECAY operation will work.
 TODO:
-- Added: add dkp outside raid and do "bulk commits" (for guild donations)
+- Added: Add dkp outside raid and do "bulk commits" (for guild donations)
+- Added: persisted log (personal - not getting merged)
 - Bugfix: "you are not in the guild" bug when joining queue (often straight after logon).
 	* I might not be able to do anything about this, since the API is providing wrong info!
 

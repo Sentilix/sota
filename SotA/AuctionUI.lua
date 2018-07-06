@@ -281,6 +281,7 @@ GuildDKP            SOTA /command       SOTA !command       SOTA /w command     
 /sharerange <n>     /SOTA sharerange [+]<n>                 -                   Share <n> DKP across all members in range (SOTA: and queue)
 -                   /SOTA rangeshare [+]<n>                 -                   sharerange and rangeshare (and the alias SR) do the same.
 /gddecay <n>        /SOTA decay <n>[%]  -                   -                   Remove <n>% DKP from all guild members
+-                   /SOTA decaytest     -                   -                   Test if DECAY operation will work (check for odd characters)
 
 -                   /SOTA listqueue     !listqueue          /w <o> listqueue    List names of people in queue (by whisper or local if user have SOTA installed)
 -                   /SOTA queue         !queue              /w <o> queue        Get queue status
@@ -521,6 +522,13 @@ function SOTA_HandleSOTACommand(msg)
 	--	Syntax: "decay <%d>[%]"
 	if cmd == "decay" then
 		return SOTA_Call_DecayDKP(arg);		
+	end
+
+
+	--	Command: decaytest
+	--	Syntax: "decaytest <%d>[%]"
+	if cmd == "decaytest" then
+		return SOTA_Call_Decaytest(arg);		
 	end
 
 
@@ -2995,6 +3003,70 @@ function SOTA_ShareRangedDKP(sharedDkp)
 	end
 	return false;
 end
+
+
+--[[
+--	Perform a DKP decay without really removing DKP. Result is echoed out locally.
+--	Added in 1.1.0
+--]]
+function SOTA_Call_Decaytest(percent)
+	SOTA_AddJob( function(job) SOTA_Decaytest(job[2]) end, percent, "_" )
+	SOTA_RequestUpdateGuildRoster();
+end
+function SOTA_Decaytest(percent, silentmode)
+	--	Note: arg may contain a percent sign; remove this first:
+	if not tonumber(percent) then
+		local pctSign = string.sub(percent, string.len(percent), string.len(percent));
+		if pctSign == "%" then
+			percent = string.sub(percent, 1, string.len(percent) - 1);
+		end
+	end
+	
+	if not tonumber(percent) then
+		localEcho("Guild Decay test cancelled: Percent is not a valid number: ".. percent);
+		return false;
+	end
+	
+	percent = abs(1 * percent);
+
+	local tidIndex = 1;
+	local tidChanges = { };
+
+	local reducedDkp = 0;
+	local playerCount = 0;
+
+	--	Iterate over all guilded players - online or not
+	local name, publicNote, officerNote
+	local memberCount = GetNumGuildMembers();
+	for n=1,memberCount,1 do
+		name, _, _, _, _, _, publicNote, officerNote = GetGuildRosterInfo(n);
+		local note = officerNote;
+		if SOTA_CONFIG_UseGuildNotes == 1 then
+			note = publicNote;
+		end
+
+		local _, _, dkp = string.find(note, "<(-?%d*)>");
+		if dkp and tonumber(dkp) then
+			local minus = floor(dkp * percent / 100)
+			tidChanges[tidIndex] = { name, (-1 * minus) }
+			tidIndex = tidIndex + 1
+			
+			dkp = dkp - minus;
+			reducedDkp = reducedDkp + minus;
+			playerCount = playerCount + 1;
+			note = string.gsub(note, "<(-?%d*)>", SOTA_CreateDkpString(dkp), 1);
+		else
+			dkp = 0;
+			note = note..SOTA_CreateDkpString(dkp);
+		end
+	end
+	
+	localEcho("Testing Guild DKP decay using a "..percent.."% decay value.");
+	localEcho("Decay will remove a total of "..reducedDkp.." DKP from ".. playerCount .." players.")
+	
+	return true;
+end
+
 
 --[[
 --	Perform Guild Decay of <n>% DKP
