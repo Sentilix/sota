@@ -6,20 +6,20 @@
 --]]
 
 local SOTA_MESSAGE_PREFIX		= "SOTAv1"
-local SOTA_ID								= "SOTA"
-local SOTA_TITLE						= "SotA"
+local SOTA_ID					= "SOTA"
+local SOTA_TITLE				= "SotA"
 local SOTA_TITAN_TITLE			= "SotA - DKP Distribution"
 
 local SOTA_DEBUG_ENABLED		= false;
 
-local CHAT_END						= "|r"
+local CHAT_END					= "|r"
 local COLOUR_INTRO				= "|c80F0F0F0"
-local COLOUR_CHAT					= "|c8040A0F8"
+local COLOUR_CHAT				= "|c8040A0F8"
 
 local PARTY_CHANNEL				= "PARTY"
 local RAID_CHANNEL				= "RAID"
 local YELL_CHANNEL				= "YELL"
-local SAY_CHANNEL					= "SAY"
+local SAY_CHANNEL				= "SAY"
 local WARN_CHANNEL				= "RAID_WARNING"
 local GUILD_CHANNEL				= "GUILD"
 local WHISPER_CHANNEL			= "WHISPER"
@@ -27,66 +27,66 @@ local WHISPER_CHANNEL			= "WHISPER"
 local SOTA_CHANNELS = {
 	{ 'Raid Warning (/rw)',			WARN_CHANNEL },
 	{ 'Raid channel (/raid)',		RAID_CHANNEL },
-	{ 'Yell (/yell)',						YELL_CHANNEL },
-	{ 'Say (/say)',							SAY_CHANNEL },
+	{ 'Yell (/yell)',				YELL_CHANNEL },
+	{ 'Say (/say)',					SAY_CHANNEL },
 	{ 'Guild chat (/guild)',		GUILD_CHANNEL },
 }
 
 
 --	Settings (persisted)
 -- Pane 1:
-SOTA_CONFIG_AuctionTime					= 20
-SOTA_CONFIG_AuctionExtension		= 8
-SOTA_CONFIG_EnableOSBidding			= 1;	-- Enable MS bidding over OS
-SOTA_CONFIG_EnableZoneCheck			= 1;	-- Enable zone check when doing raid queue DKP
-SOTA_CONFIG_EnableOnlineCheck		= 1;	-- Enable online check when doing raid queue DKP
-SOTA_CONFIG_DisableDashboard		= 0;	-- Disable Dashboard in UI (hide it)
-SOTA_CONFIG_OutputChannel				= WARN_CHANNEL;
+SOTA_CONFIG_AuctionTime			= 20
+SOTA_CONFIG_AuctionExtension	= 8
+SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
+SOTA_CONFIG_EnableZoneCheck		= 1;	-- Enable zone check when doing raid queue DKP
+SOTA_CONFIG_EnableOnlineCheck	= 1;	-- Enable online check when doing raid queue DKP
+SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
+SOTA_CONFIG_OutputChannel		= WARN_CHANNEL;
 	
 
 -- Pane 2:
-SOTA_CONFIG_BossDKP								= { }
+SOTA_CONFIG_BossDKP				= { }
 local SOTA_CONFIG_DEFAULT_BossDKP = {
-	{ "20Mans",					200 },
-	{ "MoltenCore",			600 },
-	{ "Onyxia",					600 },
+	{ "20Mans",			200 },
+	{ "MoltenCore",		600 },
+	{ "Onyxia",			600 },
 	{ "BlackwingLair",	600 },
-	{ "AQ40",						800 },
-	{ "Naxxramas",			1200 },
-	{ "WorldBosses",		400 }
+	{ "AQ40",			800 },
+	{ "Naxxramas",		1200 },
+	{ "WorldBosses",	400 }
 }
 -- Pane 3:
-SOTA_CONFIG_UseGuildNotes					= 0;
-SOTA_CONFIG_MinimumBidStrategy		= 1;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
-SOTA_CONFIG_DKPStringLength				= 5;
-SOTA_CONFIG_MinimumDKPPenalty			= 50;	-- Minimum DKP withdrawn when doing percent DKP
+SOTA_CONFIG_UseGuildNotes		= 0;
+SOTA_CONFIG_MinimumBidStrategy	= 1;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
+SOTA_CONFIG_DKPStringLength		= 5;
+SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
 
 
 --	State machine:
-local STATE_NONE									= 0
-local STATE_AUCTION_RUNNING				= 10
-local STATE_AUCTION_PAUSED				= 20
-local STATE_AUCTION_COMPLETE			= 30
-local STATE_PAUSED								= 90
+local STATE_NONE				= 0
+local STATE_AUCTION_RUNNING		= 10
+local STATE_AUCTION_PAUSED		= 20
+local STATE_AUCTION_COMPLETE	= 30
+local STATE_PAUSED				= 90
 
 -- An action runs for a minimum of 20 seconds, and minimum 5 seconds after a new bid is received
-local GUILD_REFRESH_TIMER					= 5;		-- Check guild update every 5th second
+local GUILD_REFRESH_TIMER		= 5;		-- Check guild update every 5th second
 
-local RAID_STATE_DISABLED					= 0
-local RAID_STATE_ENABLED					= 1
+local RAID_STATE_DISABLED		= 0
+local RAID_STATE_ENABLED		= 1
 -- UI Status: True = Open, False = Closed - use to prevent update of UI elements when closed.
-local RaidQueueUIOpen							= false;
-local TransactionUIOpen						= false;
-local TransactionDetailsOpen			= false;
-local ConfigurationDialogOpen			= false;
+local RaidQueueUIOpen			= false;
+local TransactionUIOpen			= false;
+local TransactionDetailsOpen	= false;
+local ConfigurationDialogOpen	= false;
 
 -- Max # of bids shown in the AuctionUI
-local MAX_BIDS										= 10
+local MAX_BIDS					= 10
 -- List of valid bids: { Name, DKP, BidType(MS=1,OS=2), Class, Rank }
-local IncomingBidsTable						= { };
+local IncomingBidsTable			= { };
 
 -- true if a job is already running
-local JobIsRunning								= false
+local JobIsRunning				= false
 
 
 --[[
@@ -125,65 +125,65 @@ local CLIENT_STATE							= CLIENT_STATE_SLAVE
 
 --	For now the one issuing DKP or starting a BID round will be master. All other will be passive.
 --	Helper is not supported.
-local CLIENT_STATE_SLAVE						= 0;		-- Client is only listening
-local CLIENT_STATE_MASTER						= 2;		-- Client issued a DKP command (active master)
-local CLIENT_STATE									= CLIENT_STATE_SLAVE
+local CLIENT_STATE_SLAVE		= 0;		-- Client is only listening
+local CLIENT_STATE_MASTER		= 2;		-- Client issued a DKP command (active master)
+local CLIENT_STATE				= CLIENT_STATE_SLAVE
 
-local SOTA_Master										= nil;	-- Current master
+local SOTA_Master				= nil;	-- Current master
 
 
 
 
 -- Working variables:
-local RaidState											= RAID_STATE_DISABLED
-local AuctionedItemLink							= ""
-local AuctionState									= STATE_NONE
+local RaidState					= RAID_STATE_DISABLED
+local AuctionedItemLink			= ""
+local AuctionState				= STATE_NONE
 
 -- Raid Roster: table of raid players:		{ Name, DKP, Class, Rank, Online }
-local RaidRosterTable								= { }
+local RaidRosterTable			= { }
 -- Guild Roster: table of guild players:	{ Name, DKP, Class, Rank, Online, Zone }
-local GuildRosterTable							= { }
-local RaidRosterLazyUpdate					= false;
+local GuildRosterTable			= { }
+local RaidRosterLazyUpdate		= false;
 -- Max # of characters displayes per role in the Raid Queue UI. A caption will be inserted in top.
-local MAX_RAID_QUEUE_SIZE						= 8;
+local MAX_RAID_QUEUE_SIZE		= 8;
 -- Max # of transaction logs shown in UI (excluding Header)
-local MAX_TRANSACTIONS_DISPLAYED		= 18;
+local MAX_TRANSACTIONS_DISPLAYED= 18;
 -- Max # of lines for class dkp displayed locally:
-local MAX_CLASS_DKP_DISPLAYED				= 10;
+local MAX_CLASS_DKP_DISPLAYED	= 10;
 -- Max # of lines for class dkp	sent by whisper:
-local MAX_CLASS_DKP_WHISPERED				= 5;
+local MAX_CLASS_DKP_WHISPERED	= 5;
 
 --	List of {jobname,name,dkp} tables
-local JobQueue											= { }
+local JobQueue					= { }
 --	Holds current Zone name - used for checking for new Zones(Instances primarily)
-local CurrentZoneName								= nil;
+local CurrentZoneName			= nil;
 -- Unique number for each queued raid member. Used for Sorting.
-local QueueID												= 1;
+local QueueID					= 1;
 -- Queued raid members: { Name, QueueID, Role , Class }
-local RaidQueue											= { }
+local RaidQueue					= { }
 
 --  Transaction log: Contains a list of { timestamp, tid, author, description, state, { names, dkp } }
 --	Transaction state: 0=Rolled back, 1=Active (default), 
-local transactionLog								= { }
+local transactionLog			= { }
 --	Current transactionID, starts out as 0 (=none).
-local currentTransactionID					= 0;
-local currentTransactionPage				= 1;	-- Current page shown (1=first page)
-local selectedTransactionID					= nil;
+local currentTransactionID		= 0;
+local currentTransactionPage	= 1;	-- Current page shown (1=first page)
+local selectedTransactionID		= nil;
 --	Sync.state: 0=idle, 1=initializing, 2=synchronizing
-local synchronizationState					= 0;
+local synchronizationState		= 0;
 --	Hold RX_SYNCINIT responses when querying for a client to sync. { message, id/count }
-local syncResults										= { };
-local syncRQResults									= { };
+local syncResults				= { };
+local syncRQResults				= { };
 
 --	# of transactions displayed in /gdlog
-local TRANSACTION_LIST_SIZE					= 5;
+local TRANSACTION_LIST_SIZE		= 5;
 --	# of player names displayed per line when posting transaction log into guild chat
 local TRANSACTION_PLAYERS_PER_LINE	= 8;
 local TRANSACTION_STATE_ROLLEDBACK	= 0;
-local TRANSACTION_STATE_ACTIVE			= 1;
+local TRANSACTION_STATE_ACTIVE		= 1;
 --	Setting for transaction details screen:
-local TRANSACTION_DETAILS_ROWS			= 18;
-local TRANSACTION_DETAILS_COLUMNS		= 4;
+local TRANSACTION_DETAILS_ROWS		= 18;
+local TRANSACTION_DETAILS_COLUMNS	= 4;
 
 
 
@@ -191,22 +191,22 @@ local TRANSACTION_DETAILS_COLUMNS		= 4;
 local QUALITY_COLORS = {
 	{0, "Poor",				{ 157,157,157 } },	--9d9d9d
 	{1, "Common",			{ 255,255,255 } },	--ffffff
-	{2, "Uncommon",		{  30,255,  0 } },	--1eff00
+	{2, "Uncommon",			{  30,255,  0 } },	--1eff00
 	{3, "Rare",				{   0,112,255 } },	--0070ff
 	{4, "Epic",				{ 163, 53,238 } },	--a335ee
-	{5, "Legendary",	{ 255,128,  0 } }		--ff8000
+	{5, "Legendary",		{ 255,128,  0 } }	--ff8000
 }
 
 local CLASS_COLORS = {
 	{ "Druid",				{ 255,125, 10 } },	--255 	125 	10		1.00 	0.49 	0.04 	#FF7D0A
 	{ "Hunter",				{ 171,212,115 } },	--171 	212 	115 	0.67 	0.83 	0.45 	#ABD473 
-	{ "Mage",					{ 105,204,240 } },	--105 	204 	240 	0.41 	0.80 	0.94 	#69CCF0 
+	{ "Mage",				{ 105,204,240 } },	--105 	204 	240 	0.41 	0.80 	0.94 	#69CCF0 
 	{ "Paladin",			{ 245,140,186 } },	--245 	140 	186 	0.96 	0.55 	0.73 	#F58CBA
 	{ "Priest",				{ 255,255,255 } },	--255 	255 	255 	1.00 	1.00 	1.00 	#FFFFFF
 	{ "Rogue",				{ 255,245,105 } },	--255 	245 	105 	1.00 	0.96 	0.41 	#FFF569
 	{ "Shaman",				{ 245,140,186 } },	--245 	140 	186 	0.96 	0.55 	0.73 	#F58CBA
 	{ "Warlock",			{ 148,130,201 } },	--148 	130 	201 	0.58 	0.51 	0.79 	#9482C9
-	{ "Warrior",			{ 199,156,110 } }		--199 	156 	110 	0.78 	0.61 	0.43 	#C79C6E
+	{ "Warrior",			{ 199,156,110 } }	--199 	156 	110 	0.78 	0.61 	0.43 	#C79C6E
 }
 
 

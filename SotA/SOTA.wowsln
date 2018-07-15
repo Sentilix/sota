@@ -1,15 +1,15 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# WowAddonStudio Solution File, Format Version 10.00
-Project("{E6E1D386-69D8-4755-9E61-0950293915FC}") = "SOTA", "SOTA.wowproj", "{CB0A68F0-ABAA-44B3-A2A3-6F89CB25ACBC}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# WowAddOnStudio Solution File, Format Version 11.00
+Project("{E6E1D386-69D8-4755-9E61-0950293915FC}") = "SotA", "SotA.wowproj", "{A48A4CD1-0F42-442C-8F75-8BBC1619A9CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|Any CPU = Default|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CB0A68F0-ABAA-44B3-A2A3-6F89CB25ACBC}.Default|Any CPU.ActiveCfg = Default|Any CPU
-		{CB0A68F0-ABAA-44B3-A2A3-6F89CB25ACBC}.Default|Any CPU.Build.0 = Default|Any CPU
+		{A48A4CD1-0F42-442C-8F75-8BBC1619A9CC}.Default|Any CPU.ActiveCfg = Default|Any CPU
+		{A48A4CD1-0F42-442C-8F75-8BBC1619A9CC}.Default|Any CPU.Build.0 = Default|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

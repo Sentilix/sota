@@ -5,5 +5,3 @@
 ## SavedVariables: SOTA_CONFIG_UseGuildNotes, SOTA_CONFIG_MinimumBidStrategy, SOTA_CONFIG_DKPStringLength, SOTA_CONFIG_MinimumDKPPenalty, SOTA_CONFIG_BossDKP, SOTA_CONFIG_AuctionTime, SOTA_CONFIG_AuctionExtension, SOTA_CONFIG_EnableOSBidding, SOTA_CONFIG_EnableZoneCheck, SOTA_CONFIG_EnableOnlineCheck, SOTA_CONFIG_DisableDashboard, SOTA_CONFIG_OutputChannel
 
 AuctionUI.xml
-
-

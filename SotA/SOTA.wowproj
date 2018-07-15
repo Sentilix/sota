@@ -1,39 +1,37 @@
-﻿<Project DefaultTargets="Deploy" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Deploy" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Default</Configuration>
-    <Name>SOTA</Name>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{cb0a68f0-abaa-44b3-a2a3-6f89cb25acbc}</ProjectGuid>
-    <AssemblyName>SOTA</AssemblyName>
-    <RootNamespace>SOTA</RootNamespace>
-    <WowPath>D:\Games\World of Warcraft 1.12.1\</WowPath>
-    <AddonTitle>SOTA</AddonTitle>
+    <Name>SotA</Name>
+    <ProjectGuid>{a48a4cd1-0f42-442c-8f75-8bbc1619a9cc}</ProjectGuid>
+    <AssemblyName>SotA</AssemblyName>
+    <RootNamespace>SotA</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Default' ">
     <OutputPath>.</OutputPath>
   </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WowAddonStudio\2.0\WowAddonStudio.targets" />
   <ItemGroup>
+    <Content Include="AuctionUI.xml">
+      <SubType>Frame</SubType>
+    </Content>
     <Content Include="AuctionUI.lua">
       <SubType>Code</SubType>
       <DependentUpon>AuctionUI.xml</DependentUpon>
     </Content>
-    <Content Include="AuctionUI.xml">
-      <SubType>Frame</SubType>
-    </Content>
-    <Content Include="SOTA.toc">
+    <Content Include="ReadMe.txt" />
+    <Content Include="SotA.toc">
       <SubType>TableOfContents</SubType>
     </Content>
     <Content Include="sota.txt" />
   </ItemGroup>
+  <Import Project="$(DevEnvDir)\Extensions\Tools\MSBuild\AddonStudio\Wow\3.0\WowAddonStudio.targets" />
   <!--
-	To modify your build process, add your task inside one of the targets below and uncomment it. 
-		
-	<Target Name="BeforeClean"></Target>
-	<Target Name="AfterClean"></Target>
-	<Target Name="BeforeRebuild"></Target>
-	<Target Name="AfterRebuild"></Target>
-	<Target Name="BeforeDeploy"></Target>
-	<Target Name="AfterDeploy"></Target>
-	-->
+  To modify your build process, add your task inside one of the targets below and uncomment it.
+  <Target Name="BeforeClean"></Target>
+  <Target Name="AfterClean"></Target>
+  <Target Name="BeforeRebuild"></Target>
+  <Target Name="AfterRebuild"></Target>
+  <Target Name="BeforeDeploy"></Target>
+  <Target Name="AfterDeploy"></Target>
+  -->
 </Project>
