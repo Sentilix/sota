@@ -1412,11 +1412,27 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
+			<!-- Allow players to Pass ? -->
+			<CheckButton name="ConfigurationFrameOptionAllowPlayerPass" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-276"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Allow players to pass")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
 			<!-- Disable Dashboard ? -->
 			<CheckButton name="ConfigurationFrameOptionDisableDashboard" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
-						<Offset x="32" y="-276"/>
+						<Offset x="32" y="-302"/>
 					</Anchor>
 				</Anchors>
 				<Scripts>
@@ -1436,7 +1452,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="32" y="-308" />
+							<AbsDimension x="32" y="-334" />
 						</Offset>
 					</Anchor>
 				</Anchors>

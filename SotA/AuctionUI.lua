@@ -40,6 +40,7 @@ SOTA_CONFIG_AuctionExtension	= 8
 SOTA_CONFIG_EnableOSBidding		= 1;	-- Enable MS bidding over OS
 SOTA_CONFIG_EnableZoneCheck		= 1;	-- Enable zone check when doing raid queue DKP
 SOTA_CONFIG_EnableOnlineCheck	= 1;	-- Enable online check when doing raid queue DKP
+SOTA_CONFIG_AllowPlayerPass     = 1;	-- 0: No pass, 1: can pass latest bid
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
 SOTA_CONFIG_OutputChannel		= WARN_CHANNEL;
 	
@@ -60,6 +61,9 @@ SOTA_CONFIG_UseGuildNotes		= 0;
 SOTA_CONFIG_MinimumBidStrategy	= 1;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
 SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
+-- History: (basically a copy of the transaction log, but not shared with others)
+SOTA_HISTORY_DKP				= { }	-- { timestamp, tid, author, description, state, { names, dkp } }
+
 
 
 --	State machine:
@@ -294,11 +298,13 @@ GuildDKP            SOTA /command       SOTA !command       SOTA /w command     
 -                   /SOTA bid <n>       !bid <n>            /w <o> bid <n>      Bid <n> DKP on item currently being auctioned
 -                   /SOTA bid min       !bid min            /w <o> bid min      Bid the minimum bid on item currently being auctioned
 -                   /SOTA bid max       !bid max            /w <o> bid max      Bid everyting (go all out) on item currently being auctioned
+-                   /SOTA pass          !pass               /w <o> pass         Pass last bid
 
 -                   /SOTA config        -                   -                   Open the configuration interface
 -                   /SOTA log           -                   -                   Open the transaction log interface
 -                   /SOTA version       -                   -                   Check the SOTA versions running
 -                   /SOTA master        -                   -                   Force player to become Master (if he is raid leader or assistant)
+-                   /SOTA clear         -                   -                   Clears the local history log (not the shared log).
 
 /gdhelp             /SOTA help          -                   -                   Show HELP page (more or less this page!)
 ]]
@@ -389,7 +395,12 @@ function SOTA_HandleSOTACommand(msg)
 		end
 		return;
 	end
-	
+
+	--	Command: clearhistory
+	--	Syntax: "clear", "clearhistory"
+	if (cmd == "clear") or (cmd == "clearhistory") then
+		return SOTA_ClearLocalHistory(arg);
+	end
 
 	--	Command: dkp
 	--	Syntax: "dkp [<playername>]"
@@ -445,6 +456,13 @@ function SOTA_HandleSOTACommand(msg)
 	if cmd == "bid" or cmd == "ms" or cmd == "os" then
 		return SOTA_HandlePlayerBid(playername, msg);
 	end
+
+	--	Command: pass
+	--	Syntax: "pass"
+	if cmd == "pass" then
+		return SOTA_HandlePlayerPass(playername);
+	end
+
 	
 	
 	if cmd == "raid" then
@@ -576,7 +594,7 @@ function SOTA_DisplayHelp()
 	localEcho("Player DKP:");
 	echo("  +<dkp> <p>    Add <dkp> to the player <p>.");
 	echo("  -<dkp> <p>    Subtract <dkp> from the player <p>.");
-	echo("  -<pct>% <p>    Subtract <pct> % DKP from the player <p>. A minimum subtracted amount can be configured in the DKP options.");
+	echo("  -<pct>% <p>   Subtract <pct> % DKP from the player <p>. A minimum subtracted amount can be configured in the DKP options.");
 	echo("");
 	--	Raid DKP:
 	localEcho("Raid DKP:");
@@ -605,6 +623,7 @@ function SOTA_DisplayHelp()
 	echo("  !queue    Get current queue status (number of people in queue)");
 	echo("  !queue <r>    Queue as role <r>; <r> can be tank, melee, ranged or healer");
 	echo("  !leave    Leave the raid queue.");
+	echo("  !listqueue    Returns a list of people who are currently in queue.");
 	echo("  !bid <dkp>    Bid <dkp> for item currently being on auction.");
 	echo("  !bid min    Bid the minimum bid on item currently being on auction.");
 	echo("  !bid max    Bid everyting (go all out) on item currently being on auction");	
@@ -1133,6 +1152,9 @@ function SOTA_OnChatWhisper(event, message, sender)
 	
 	if cmd == "bid" or cmd == "os" or cmd == "ms" then
 		SOTA_HandlePlayerBid(sender, message);
+
+	elseif cmd == "pass" then
+		SOTA_HandlePlayerPass(sender);
 		
 	elseif cmd == "queue" then
 		SOTA_HandleQueueRequest(sender, message);
@@ -1394,6 +1416,49 @@ function SOTA_AcceptBid(playername, bid)
 	end
 end
 
+
+--[[
+--	Pass a player's bid.
+--	Passing is a configurable option via SOTA_CONFIG_AllowPlayerPass:
+--		0: No passing allowed
+--		1: Only pass latest bid
+--	Added in 1.1.0
+--]]
+function SOTA_HandlePlayerPass(playername)
+	if (SOTA_CONFIG_AllowPlayerPass == 0) then
+		whisper(playername, "Sorry, but you cannot pass once you've made a bid!");
+		return;
+	end;
+
+	if not(AuctionState == STATE_AUCTION_RUNNING) then
+		whisper(playername, "There is currently no auction running - pass was ignored.");
+		return;
+	end;
+
+
+	IncomingBidsTable = SOTA_RenumberTable(IncomingBidsTable);
+	local size = table.getn(IncomingBidsTable);
+
+	if (size == 0) then
+		whisper(playername, "There are no bids for this action to pass.");
+		return;
+	end;
+
+	local lastbid = IncomingBidsTable[1];
+	if not(playername == lastbid[1]) then
+		whisper(playername, "You can only pass if you have the latest bid!");
+		return;
+	end;
+
+	if (size > 1) then
+		local nextbid = IncomingBidsTable[2];
+		raidEcho(string.format("%s passed; highest bid is now by %s for %d DKP", playername, nextbid[1], nextbid[2]));
+	else
+		raidEcho(string.format("%s passed; there are currently no active bids.", playername));
+	end;
+
+	SOTA_UnregisterBid(lastbid[1], lastbid[2]);		
+end;
 
 
 
@@ -4006,6 +4071,16 @@ function SOTA_HandleCheckbox(checkbox)
 		return;
 	end
 
+	--	Allow Player Pass:
+	if checkboxname == "ConfigurationFrameOptionAllowPlayerPass" then
+		if checkbox:GetChecked() then
+			SOTA_CONFIG_AllowPlayerPass = 1;
+		else
+			SOTA_CONFIG_AllowPlayerPass = 0;
+		end
+		return;
+	end
+
 	--	Disable Dashboard:		
 	if checkboxname == "ConfigurationFrameOptionDisableDashboard" then
 		if checkbox:GetChecked() then
@@ -4323,15 +4398,47 @@ end
 function SOTA_LogMultipleTransactions(transactioncmd, transactions)
 	local author = UnitName("Player");
 	local tid = SOTA_GetNextTransactionID();
-	transactionLog[tid] = { SOTA_GetTimestamp(), tid, author, transactioncmd, TRANSACTION_STATE_ACTIVE, transactions };
 
+	transactionLog[tid] = { SOTA_GetTimestamp(), tid, author, transactioncmd, TRANSACTION_STATE_ACTIVE, transactions };
 	SOTA_RefreshTransactionElements();
 	SOTA_BroadcastTransaction(transactionLog[tid]);
+
+	-- Insert transaction (including Zone) into DKP history log:
+	transactionLog[tid][7] = GetRealZoneText();
+	table.insert(SOTA_HISTORY_DKP, transactionLog[tid]);
+
+--	SOTA_PrintDKPHistory();
 end
 
+
 --[[
-	Broadcast a transaction to other clients
-]]
+--	Clear the local DKP history.
+--	Added in 1.1.0
+--]]
+function SOTA_ClearLocalHistory()
+	SOTA_HISTORY_DKP = { };
+	localEcho("Local history was cleared.");
+end;
+
+
+--[[
+--	Currently only used for debugging: Output complete history.
+--]]
+function SOTA_PrintDKPHistory()
+	echo("DKP HISTORY:");
+	for n=1, table.getn(SOTA_HISTORY_DKP), 1 do
+		local b = SOTA_HISTORY_DKP[n];
+		for f=1,table.getn(b[6]), 1 do
+			local p = b[6][f];
+			echo(string.format("* %s: %d, %s, %s, %d, PLR=%s, DKP=%d, ZONE=%s", b[1], 1*b[2], b[3], b[4], 1*b[5], p[1], 1*p[2], b[7]));
+		end;
+	end;
+end;
+
+
+--[[
+--	Broadcast a transaction to other clients
+--]]
 function SOTA_BroadcastTransaction(transaction)
 	if SOTA_IsInRaid(true) then
 		local timestamp = transaction[1];
@@ -4933,7 +5040,7 @@ function SOTA_OnZoneChanged()
 	if SOTA_IsInRaid(true) then
 		local dkp = SOTA_GetStartingDKP();
 		if dkp > 0 then
-			local zonetext = GetRealZoneText();			
+			local zonetext = GetRealZoneText();
 			if zonetext == "Azshara" then
 				zonetext = zonetext .." (Azuregos)";
 			elseif zonetext == "Blasted Lands" then
@@ -4976,16 +5083,24 @@ function SOTA_InitializeConfigSettings()
 	if not SOTA_CONFIG_EnableOnlineCheck then
 		SOTA_CONFIG_EnableOnlineCheck = 1;
 	end
+	if not SOTA_CONFIG_AllowPlayerPass then
+		SOTA_CONFIG_AllowPlayerPass = 1;
+	end;
 	if not SOTA_CONFIG_DisableDashboard then
 		SOTA_CONFIG_DisableDashboard = 1;
 	end
 	if not SOTA_CONFIG_OutputChannel then
 		SOTA_CONFIG_OutputChannel = WARN_CHANNEL;
 	end
+	if not SOTA_HISTORY_DKP then
+		SOTA_HISTORY_DKP = { };
+	end
+
 	
 	getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
 	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZoneCheck);
 	getglobal("ConfigurationFrameOptionEnableOnlinecheck"):SetChecked(SOTA_CONFIG_EnableOnlineCheck);
+	getglobal("ConfigurationFrameOptionAllowPlayerPass"):SetChecked(SOTA_CONFIG_AllowPlayerPass);
 	getglobal("ConfigurationFrameOptionDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
 	SOTA_RefreshDropDownBoxes();
 
