@@ -15,9 +15,9 @@ SOTA_TITAN_TITLE				= "SotA - DKP Distribution"
 
 local SOTA_DEBUG_ENABLED		= false;
 
-local CHAT_END					= "|r"
-local COLOUR_INTRO				= "|c80F0F0F0"
-local COLOUR_CHAT				= "|c8040A0F8"
+SOTA_CHAT_END					= "|r"
+SOTA_COLOUR_INTRO				= "|c80F0F0F0"
+SOTA_COLOUR_CHAT				= "|c8040A0F8"
 
 local PARTY_CHANNEL				= "PARTY"
 local RAID_CHANNEL				= "RAID"
@@ -117,13 +117,13 @@ SOTA_HISTORY_DKP				= { }	-- { timestamp, tid, author, description, state, { nam
 --]]
 function echo(msg)
 	if msg then
-		DEFAULT_CHAT_FRAME:AddMessage(COLOUR_CHAT .. msg .. CHAT_END)
+		DEFAULT_CHAT_FRAME:AddMessage(SOTA_COLOUR_CHAT .. msg .. SOTA_CHAT_END)
 	end
 end
 
 function debugEcho(msg)
 	if SOTA_DEBUG_ENABLED and msg then
-		DEFAULT_CHAT_FRAME:AddMessage(COLOUR_CHAT .. "DEBUG: ".. msg .. CHAT_END)
+		DEFAULT_CHAT_FRAME:AddMessage(SOTA_COLOUR_CHAT .. "DEBUG: ".. msg .. SOTA_CHAT_END)
 	end
 end
 
@@ -132,7 +132,7 @@ function publicEcho(msg)
 end;
 
 function localEcho(msg)
-	echo("<"..COLOUR_INTRO..SOTA_TITLE..COLOUR_CHAT.."> "..msg);
+	echo("<"..SOTA_COLOUR_INTRO..SOTA_TITLE..SOTA_COLOUR_CHAT.."> "..msg);
 end;
 
 function raidEcho(msg)
@@ -1548,8 +1548,30 @@ local function strategyGGCRules(dkp)
 	return dkp;
 end
 
+-- Deja Vu rules:
+-- Minimum bid: 100 DKP
+--	100-4999: +100 DKP
+-- 5000+: 1000 DKP
+--
+local function strategyDejaVuRules(dkp)
+	if dkp < 100 then
+		dkp = 100;
+	elseif dkp < 5000 then
+		dkp = dkp + 100;
+	else 
+		dkp = dkp + 1000;
+	end;
+	return dkp;
+end;
+
 
 function SOTA_GetStartingDKP()
+	-- Deja Vu rules: starting bid is always 100 DKP
+	if SOTA_CONFIG_MinimumBidStrategy == 4 then
+		return 100;
+	end;
+
+
 	-- TODO: Detect current instance (if any) and calculate starting DKP.
 	local startingDKP = 0;
 	local zonetext = GetRealZoneText();
@@ -1651,6 +1673,8 @@ function SOTA_GetMinimumBid(bidtype)
 		minimumBid = strategy10Percent(minimumBid);
 	elseif SOTA_CONFIG_MinimumBidStrategy == 3 then
 		minimumBid = strategyGGCRules(minimumBid);
+	elseif SOTA_CONFIG_MinimumBidStrategy == 4 then
+		minimumBid = strategyDejaVuRules(minimumBid);
 	else
 		-- Fallback strategy (no strategy)
 		minimumBid = minimumBid + 1;

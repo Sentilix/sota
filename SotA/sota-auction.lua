@@ -221,16 +221,37 @@ function SOTA_HandlePlayerBid(sender, message)
 	end	
 
 	dkp = 1 * dkp
-	if dkp < minimumBid then
+
+	local userWentAllIn = false;
+	local highestBid = SOTA_GetHighestBid(bidtype);
+
+	local hiBid = SOTA_GetStartingDKP(bidtype);
+	if highestBid then
+		hiBid = highestBid[2];
+	end;
+
+
+	-- Check user at least did bid more than last bidder:
+	if(dkp > hiBid) then
+		-- He did, but he also bid less than the minimum DKP:
+		if (availableDkp < dkp) then
+			-- If he doesnt have enough DKP, then let him go all out:
+			if(availableDkp < minimumBid) and (availableDkp > hiBid) then
+				dkp = availableDkp;
+				userWentAllIn = true;
+			else
+				SOTA_whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp));
+				return;
+			end;
+		end
+	end;
+
+	if not(userWentAllIn) and (dkp < minimumBid) then
 		SOTA_whisper(sender, string.format("You must bid at least %s DKP - bid was ignored.", minimumBid));
 		return;
 	end
 
-	if availableDkp < dkp then
-		SOTA_whisper(sender, string.format("You only have %d DKP - bid was ignored.", availableDkp));
-		return
-	end
-	
+
 	if Seconds < SOTA_CONFIG_AuctionExtension then
 		Seconds = SOTA_CONFIG_AuctionExtension;
 	end
@@ -238,11 +259,19 @@ function SOTA_HandlePlayerBid(sender, message)
 	local bidderClass = playerInfo[3];
 	local bidderRank  = playerInfo[4];
 	
-	if bidtype == 2 then
-		publicEcho(string.format("%s is bidding %d Off-spec for %s", sender, dkp, AuctionedItemLink));
+	if userWentAllIn then
+		if bidtype == 2 then
+			publicEcho(string.format("%s went all in (%d) Off-spec for %s", sender, dkp, AuctionedItemLink));
+		else
+			publicEcho(string.format("%s (%s) went all in (%d DKP) for %s", sender, bidderRank, dkp, AuctionedItemLink));
+		end;
 	else
-		publicEcho(string.format("%s (%s) is bidding %d DKP for %s", sender, bidderRank, dkp, AuctionedItemLink));
-	end
+		if bidtype == 2 then
+			publicEcho(string.format("%s is bidding %d Off-spec for %s", sender, dkp, AuctionedItemLink));
+		else
+			publicEcho(string.format("%s (%s) is bidding %d DKP for %s", sender, bidderRank, dkp, AuctionedItemLink));
+		end;
+	end;
 	
 
 	SOTA_RegisterBid(sender, dkp, bidtype, bidderClass, bidderRank);

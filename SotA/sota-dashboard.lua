@@ -1167,9 +1167,9 @@ function SOTA_OnZoneChanged()
 				zonetext = zonetext .." (Emerald Dream)";
 			end
 			
-			localEcho(string.format("Instance: "..COLOUR_INTRO.."%s"..COLOUR_CHAT, zonetext));
-			localEcho(string.format("Boss value: "..COLOUR_INTRO.."%s"..COLOUR_CHAT.." DKP", dkp*10));
-			localEcho(string.format("Minimum bid: "..COLOUR_INTRO.."%s"..COLOUR_CHAT.." DKP", dkp));
+			localEcho(string.format("Instance: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT, zonetext));
+			localEcho(string.format("Boss value: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.." DKP", dkp*10));
+			localEcho(string.format("Minimum bid: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.." DKP", dkp));
 		end
 	end
 end

@@ -510,11 +510,26 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
+			<CheckButton name="ConfigurationFrameOptionMinBidStrategy4" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-242"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Deja Vu Rules (100-4999: +100, 5K+: +1000)")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
 			<!-- DKP String Length, options: 0-8 -->
 			<Slider name="ConfigurationFrameOptionDKPStringLength" minValue="0" maxValue="8" defaultValue="5" valueStep="1" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
-						<Offset x="64" y="-270"/>
+						<Offset x="64" y="-292"/>
 					</Anchor>
 				</Anchors>
 				<Size>
@@ -534,7 +549,7 @@
 			<Slider name="ConfigurationFrameOptionMinimumDKPPenalty" minValue="0" maxValue="500" defaultValue="50" valueStep="10" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
-						<Offset x="64" y="-314"/>
+						<Offset x="64" y="-336"/>
 					</Anchor>
 				</Anchors>
 				<Size>

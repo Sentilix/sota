@@ -59,6 +59,7 @@ function SOTA_CloseConfigurationElements(headline)
 	ConfigurationFrameOptionMinBidStrategy1:Hide();
 	ConfigurationFrameOptionMinBidStrategy2:Hide();
 	ConfigurationFrameOptionMinBidStrategy3:Hide();
+	ConfigurationFrameOptionMinBidStrategy4:Hide();
 	ConfigurationFrameOptionDKPStringLength:Hide();
 	ConfigurationFrameOptionMinimumDKPPenalty:Hide();
 	
@@ -101,6 +102,7 @@ function SOTA_OpenConfigurationFrame3()
 	ConfigurationFrameOptionMinBidStrategy1:Show();
 	ConfigurationFrameOptionMinBidStrategy2:Show();
 	ConfigurationFrameOptionMinBidStrategy3:Show();
+	ConfigurationFrameOptionMinBidStrategy4:Show();
 	ConfigurationFrameOptionDKPStringLength:Show();
 	ConfigurationFrameOptionMinimumDKPPenalty:Show();
 end
@@ -385,22 +387,32 @@ function SOTA_HandleCheckbox(checkbox)
 			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(0);
 			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(0);
 			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(0);
+			getglobal("ConfigurationFrameOptionMinBidStrategy4"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 0;
 		elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy1" then
 			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(0);
 			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(0);
 			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(0);
+			getglobal("ConfigurationFrameOptionMinBidStrategy4"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 1;
 		elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy2" then
 			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(0);
 			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(0);
 			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(0);
+			getglobal("ConfigurationFrameOptionMinBidStrategy4"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 2;
 		elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy3" then
 			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(0);
 			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(0);
 			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(0);
+			getglobal("ConfigurationFrameOptionMinBidStrategy4"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 3;			
+		elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy4" then
+			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(0);
+			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(0);
+			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(0);
+			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(0);
+			SOTA_CONFIG_MinimumBidStrategy = 4;
 		end
 	end
 end
