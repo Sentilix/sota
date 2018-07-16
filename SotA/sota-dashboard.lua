@@ -836,7 +836,9 @@ local function SOTA_HandleTXUpdate(message, sender)
 		SOTA_currentTransactionID = tid;
 	end
 
-	SOTA_RefreshTransactionLog();
+	SOTA_CopyTransactionToHistory(transaction);
+
+	SOTA_RefreshLogElements();
 end
 
 

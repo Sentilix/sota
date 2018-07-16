@@ -553,12 +553,35 @@ function SOTA_LogMultipleTransactions(transactioncmd, transactions)
 
 	SOTA_BroadcastTransaction(SOTA_transactionLog[tid]);
 
-	-- Insert transaction (including Zone) into DKP history log:
-	local logentry = SOTA_transactionLog[tid];
-	logentry[1] = SOTA_GetDateTimestamp();
-	logentry[7] = GetRealZoneText();
-	table.insert(SOTA_HISTORY_DKP, logentry);
+	SOTA_CopyTransactionToHistory(SOTA_transactionLog[tid]);
 end
+
+--[[
+--	Insert transaction (including Zone) into DKP history log.
+--	Will merge with existing transaction (timestamp + TID) if found :-(
+--	Added in 1.1.0
+--]]
+function SOTA_CopyTransactionToHistory(transaction)
+	transaction[1] = SOTA_GetDateTimestamp();
+	transaction[7] = GetRealZoneText();
+
+	local timestamp = transaction[1];
+	local tid = transaction[2];
+
+	for n=1, table.getn(SOTA_HISTORY_DKP), 1 do
+		local entry = SOTA_HISTORY_DKP[n];
+		-- Same transaction found; replace player data with the current one:
+		if (entry[1] == timestamp) and (entry[2] == tid) then
+			-- However, verify the new array is larger than the old one (it should be!)
+			if(table.getn(transaction[6]) > table.getn(SOTA_HISTORY_DKP[n][6])) then
+				SOTA_HISTORY_DKP[n][6] = transaction[6];
+			end;
+			return;
+		end;
+	end;
+
+	table.insert(SOTA_HISTORY_DKP, transaction);
+end;
 
 
 --[[
@@ -717,13 +740,12 @@ function SOTA_OnDKPHistoryClick(object)
 					dkp = 1*info[2];
 					localEcho("----- DKP details -----");
 					localEcho(string.format(" - Player: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.." - Zone: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.."", info[1], entry[7]));
-
+					localEcho(string.format(" - Date: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", TransactionID: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", entry[1], 1*entry[2]));
 					if dkp < 0 then
 						localEcho(string.format(" - DKP subtracted: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT..", Total players involved: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", math.abs(dkp), table.getn(entry[6])));
 					else
 						localEcho(string.format(" - DKP added: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT..", Total players involved: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", math.abs(dkp), table.getn(entry[6])));
 					end;
-					localEcho(string.format(" - Date: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", TID: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", entry[1], 1*entry[2]));
 					localEcho(string.format(" - Command: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", Officer: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.."", entry[4], entry[3]));
 					return;
 				end;

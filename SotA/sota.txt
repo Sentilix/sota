@@ -102,6 +102,10 @@ DONE:
 (RC1)
 - Added: UI for DKP history plus "/sota resethistory" to clear the local log.
 - Update: World dragon texts updated.
+(RC2)
+- Bugfix: sharerange did not share the dkp as inteded - fixed.
+- Bugfix: SOTA_RefreshTransactionLog() no longer exists - fixed.
+- Bugfix: shared and ranged dkp appeared multiple times in history - fixed.
 TODO:
 - Added: Add dkp outside raid and do "bulk commits" (for guild donations)
 - Bugfix: "you are not in the guild" bug when joining queue (often straight after logon).

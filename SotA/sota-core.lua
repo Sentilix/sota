@@ -876,7 +876,7 @@ end
 
 --[[
 --	Add <n> DKP to all in 100 yard range.
---	1.0.2: result is number of people affected, and not true/false
+--	1.0.2: result is number of people affected, and not true/false.
 --]]
 function SOTA_Call_AddRangedDKP(dkp)
 	if SOTA_IsInRaid(true) then
@@ -886,7 +886,7 @@ function SOTA_Call_AddRangedDKP(dkp)
 		SOTA_RequestUpdateGuildRoster();
 	end
 end
-function SOTA_AddRangedDKP(dkp, silentmode, dkpLabel)
+function SOTA_AddRangedDKP(dkp, silentmode, dkpLabel, shareTheDKP)
 	dkp = 1 * dkp;
 
 	SOTA_QueuedPlayersImpacted = 0;
@@ -897,7 +897,29 @@ function SOTA_AddRangedDKP(dkp, silentmode, dkpLabel)
 	if not dkpLabel then
 		dkpLabel = "+Range";
 	end
+
+	-- If true, we must share the dkp across all players, so do a player count to calculate the avg dkp:
+	if shareTheDKP then
+		local playerCount = 0;
+		for n=1, 40, 1 do
+			local unitid = "raid"..n;
+			local player = UnitName(unitid);
+
+			if player then
+				if UnitIsConnected(unitid) and UnitIsVisible(unitid) then
+					playerCount = playerCount + 1;
+				end
+			end
+		end
+
+		if playerCount > 0 then
+			dkp = math.ceil(dkp / playerCount);
+		else
+			dkp = 0;
+		end;
+	end;
 	
+
 	for n=1, 40, 1 do
 		local unitid = "raid"..n;
 		local player = UnitName(unitid);
@@ -1026,7 +1048,7 @@ function SOTA_ShareRangedDKP(sharedDkp)
 	if SOTA_IsInRaid(true) then	
 		sharedDkp = abs(1 * sharedDkp);
 		
-		local inRange = SOTA_AddRangedDKP(sharedDkp, true, "+ShRange");
+		local inRange = SOTA_AddRangedDKP(sharedDkp, true, "+ShRange", true);
 		if inRange > 0 then
 			local dkp = ceil(sharedDkp / inRange);
 			if SOTA_QueuedPlayersImpacted == 0 then
