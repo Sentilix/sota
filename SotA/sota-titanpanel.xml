@@ -1,0 +1,26 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Script file="sota-titanpanel.lua" />
+
+	<!-- Titan Panel Button (optional) -->
+	<Frame parent="UIParent">
+		<Frames>
+			<Button name="TitanPanelSOTAButton" inherits="TitanPanelIconTemplate" frameStrata="FULLSCREEN" toplevel="true">
+				<Scripts>
+					<OnLoad>
+						if TitanPanelButton_OnLoad then
+						TitanPanelSOTAButton_OnLoad();
+						TitanPanelButton_OnLoad();
+						end
+					</OnLoad>
+					<OnClick>
+						if arg1 == "LeftButton" then
+						SOTA_ToggleConfigurationUI();
+						end
+						TitanPanelButton_OnClick(arg1);
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</Frame>
+
+</Ui>

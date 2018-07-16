@@ -1,0 +1,324 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Script file="sota-transactionlog.lua" />
+
+	<!-- template for a Log entry in the Transaction UI -->
+	<Button name="SOTA_LogTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="320" y="16"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Timestamp -->
+				<FontString name="$parentTime" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="64" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="4" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<!-- + / - icon -->
+				<Texture name="$parentIcon" file="">
+					<Size>
+						<AbsDimension x="16" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentTime"/>
+					</Anchors>
+				</Texture>
+				<!-- Transaction ID -->
+				<FontString name="$parentTID" justifyH="RIGHT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="20" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentIcon"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentFiller1" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="4" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentTID"/>
+					</Anchors>
+				</FontString>
+				<!-- Player name -->
+				<FontString name="$parentName" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="90" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentFiller1"/>
+					</Anchors>
+				</FontString>
+				<!-- Command type value -->
+				<FontString name="$parentCommand" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="70" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentName"/>
+					</Anchors>
+				</FontString>
+				<!-- DKP value -->
+				<FontString name="$parentDKP" justifyH="RIGHT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="50" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentCommand"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnTransactionLogClick(this)
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+			<Color r="0.0" g="0.0" b="0.0" a="0.0"/>
+		</NormalTexture>
+	</Button>
+
+	<!-- template for a Player entry in the Transaction UI (4 columns) -->
+	<Button name="SOTA_FourPlayerTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="80" y="16"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Player, 1 -->
+				<FontString name="$parentPlayer1" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="4" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<!-- Player, 2 -->
+				<FontString name="$parentPlayer2" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentPlayer1"/>
+					</Anchors>
+				</FontString>
+				<!-- Player, 3 -->
+				<FontString name="$parentPlayer3" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentPlayer2"/>
+					</Anchors>
+				</FontString>
+				<!-- Player, 4 -->
+				<FontString name="$parentPlayer4" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentPlayer3"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnTransactionLogDetailPlayer(this);
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+		</NormalTexture>
+	</Button>
+
+	<!-- template for a Player entry in the Transaction UI (1 column) -->
+	<Button name="SOTA_PlayerLogTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="80" y="16"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Player, 1 -->
+				<FontString name="$parentPlayerButton" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16"/>
+					</Size>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnTransactionLogDetailPlayer(this);
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+		</NormalTexture>
+	</Button>
+
+	
+
+	<!-- Transaction Log Frame -->
+	<Frame name="TransactionUIFrame" inherits="SOTAFrame">
+		<Layers>
+			<Layer>
+				<FontString name="$parentTitle" inherits="GameFontNormal" text="SotA Transaction Log">
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="-6" y="233" />
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<!-- Log frame -->
+			<Frame name="$parentTableList" hidden="true">
+				<Size>
+					<AbsDimension x="320" y="322" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-92" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Frame>
+			<!-- Log Details frame -->
+			<Frame name="$parentPlayerList" hidden="true">
+				<Size>
+					<AbsDimension x="324" y="318" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="18" y="-92" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Frame>
+			<!-- Top right corner close button -->
+			<Button name="$parentTopCloseButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="322" y="-8" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_CloseTransactionUI();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Log frame buttons: PREVious button -->
+			<Button name="PrevTransactionPageButton" inherits="UIPanelButtonTemplate" text="&lt;&lt; Prev">
+				<Size>
+					<AbsDimension x="78" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="183" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_PreviousTransactionUIPage();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Log frame buttons: NEXT button -->
+			<Button name="NextTransactionPageButton" inherits="UIPanelButtonTemplate" text="Next &gt;&gt;">
+				<Size>
+					<AbsDimension x="78" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="264" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_NextTransactionUIPage();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Log Details frame buttons: Back button -->
+			<Button name="BackToTransactionLogButton" inherits="UIPanelButtonTemplate" text="&lt;&lt; Back">
+				<Size>
+					<AbsDimension x="78" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="183" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_CloseTransactionDetails();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Log Details frame buttons: Undo button -->
+			<Button name="UndoTransactionButton" inherits="UIPanelButtonTemplate" text="Undo">
+				<Size>
+					<AbsDimension x="78" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="264" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_RequestUndoTransaction();
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</Frame>
+</Ui>

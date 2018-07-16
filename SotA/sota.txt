@@ -95,6 +95,7 @@ DONE:
 - Added: /decaytest - check a DECAY operation will work.
 (Beta3)
 - Added: "!pass" to allow players to pass (last) bid.
+- Refactored units and forms (finally!)
 TODO:
 - Added: Add dkp outside raid and do "bulk commits" (for guild donations)
 - Added: persisted log (personal - not getting merged with other officers), add: /resethistory

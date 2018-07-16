@@ -1,0 +1,232 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Script file="sota-dashboard.lua" />
+
+	<!-- SotA Dashboard -->
+	<Frame name="DashboardUIFrame" parent="UIParent" toplevel="true" hidden="true">
+		<Size>
+			<AbsDimension x="296" y="80" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset x="312" y="-118" />
+			</Anchor>
+		</Anchors>
+		<Frames>
+			<!-- Current item frame -->
+			<Frame name="$parentItem">
+				<Size>
+					<AbsDimension x="296" y="40" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-24" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true" bgFile="Interface\DialogFrame\UI-DialogBox-Background">
+					<BackgroundInsets>
+						<AbsInset left="4" right="4" top="4" bottom="4" />
+					</BackgroundInsets>
+					<EdgeSize>
+						<AbsValue val="16" />
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16" />
+					</TileSize>
+				</Backdrop>
+				<!-- "buttons" -->
+				<Frames>
+					<!-- Button 1A: Raid Queue ("Prayer of Spirit") -->
+					<Button name="$parentShareDKPButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="TOPLEFT">
+								<Offset>
+									<AbsDimension x="4" y="-4" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\Spell_Holy_PrayerOfSpirit.blp" />
+						<PushedTexture file="Interface\ICONS\Spell_Holy_DivineSpirit.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_OpenRaidQueueUI();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Open Raid Queue");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+					<!-- Button 2A: Transaction Log ("Note") -->
+					<Button name="$parentTransactionLogButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="40" y="0" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\INV_Misc_Note_05.blp" />
+						<PushedTexture file="Interface\ICONS\INV_Misc_Note_03.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_OpenTransauctionUI();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Open Transaction Log");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+					<!-- Button 3A: Configuration ("Gear") -->
+					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="80" y="0" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\INV_Misc_Gear_01.blp" />
+						<PushedTexture file="Interface\ICONS\INV_Misc_Gear_02.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_DisplayConfigurationScreen();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Open Configuration screen");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+					<!-- Button 1B: Make Master ("Kings") -->
+					<Button name="$parentConfigurationButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="220" y="0" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\Spell_Magic_Magearmor.blp" />
+						<PushedTexture file="Interface\ICONS\Spell_Magic_GreaterBlessingOfKings.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_RequestSOTAMaster();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Request SOTA Master status");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+					<!-- Button 2B: Share DKP ("Coins") -->
+					<Button name="$parentShareDKPButton" inherits="ActionButtonTemplate" frameStrata="HIGH" hidden="false">
+						<Size>
+							<AbsDimension x="32" y="32" />
+						</Size>
+						<Anchors>
+							<Anchor point="LEFT">
+								<Offset>
+									<AbsDimension x="260" y="0" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<NormalTexture file="Interface\ICONS\INV_Misc_Coin_04.blp" />
+						<PushedTexture file="Interface\ICONS\INV_Misc_Coin_02.blp" />
+						<Scripts>
+							<OnClick>
+								SOTA_ShareBossDKP();
+							</OnClick>
+							<OnEnter>
+								SOTA_ShowDashboardToolTip(this, "Share DKP across Raid and Queue");
+							</OnEnter>
+							<OnLeave>
+								SOTA_HideDashboardToolTip(this);
+							</OnLeave>
+						</Scripts>
+					</Button>
+				</Frames>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString inherits="GameFontNormal" text="SOTA Master:">
+							s
+							<Anchors>
+								<Anchor point="LEFT">
+									<Offset>
+										<AbsDimension x="120" y="10" />
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
+						<FontString name="SOTA_MasterName" inherits="GameFontNormal" text="(none)">
+							<Anchors>
+								<Anchor point="LEFT">
+									<Offset>
+										<AbsDimension x="120" y="-8" />
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<Color r="1" g="1" b="1" a="" />
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				this:SetMovable(true)
+				this:SetUserPlaced(true)
+				this:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnDragStart>
+				this:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				this:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
+	</Frame>
+
+	<!-- Dummy event frame -->
+	<Frame name="SOTAEventFrame">
+		<Scripts>
+			<OnLoad>
+				if (SOTA_OnLoad) then
+				SOTA_OnLoad();
+				end
+			</OnLoad>
+			<OnEvent>
+				if (SOTA_OnEvent) then
+				SOTA_OnEvent(event, arg1, arg2, arg3, arg4, arg5);
+				end
+			</OnEvent>
+			<OnUpdate>
+				if (SOTA_OnTimer) then
+				SOTA_OnTimer(arg1);
+				end
+			</OnUpdate>
+		</Scripts>
+	</Frame>
+</Ui>

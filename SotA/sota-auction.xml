@@ -1,0 +1,342 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Script file="sota-auction.lua" />
+
+	<!-- template for Bid entries -->
+	<Button name="SOTA_BidTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="420" y="16" />
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Player name -->
+				<FontString name="$parentBidder" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="100" y="16" />
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="4" y="0" />
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<Color r="1" g="1" b="1" />
+				</FontString>
+				<!-- Player bid -->
+				<FontString name="$parentBid" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="80" y="16" />
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentBidder" />
+					</Anchors>
+				</FontString>
+				<!-- Guild rank -->
+				<FontString name="$parentRank" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="220" y="16" />
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentBid" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnBidClick(this)
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+			<Color r="0.0" g="0.0" b="0.5" a="0.5" />
+		</NormalTexture>
+	</Button>
+
+
+	<!-- Auction UI Frame -->
+	<Frame name="AuctionUIFrame" parent="UIParent" toplevel="true" hidden="true">
+		<Size>
+			<AbsDimension x="460" y="450" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset x="312" y="-118" />
+			</Anchor>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11" />
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32" />
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32" />
+			</EdgeSize>
+		</Backdrop>
+		<Frames>
+			<!-- Current item frame -->
+			<Frame name="$parentItem">			
+				<Size>
+					<AbsDimension x="430" y="100" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-24" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16" />
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16" />
+					</TileSize>
+				</Backdrop>
+				<Frames>
+					<Frame name="$parentItem">
+						<Size>
+							<AbsDimension x="64" y="64" />
+						</Size>
+						<Anchors>
+							<Anchor point="TOPLEFT">
+								<Offset>
+									<AbsDimension x="16" y="-16" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<Layers>
+							<Layer level="ARTWORK">
+								<Texture name="$parentTexture" file="">
+									<Anchors>
+										<Anchor point="TOP" relativeTo="$parentHeaderTexture">
+											<Offset>
+												<AbsDimension x="0" y="-14" />
+											</Offset>
+										</Anchor>
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
+					</Frame>
+				</Frames>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="$parentItemName" inherits="GameFontNormal" font="Fonts\FRIZQT__.TTF" text="">
+							<Color r="" g="" b="" a="" />
+							<FontHeight val="20" />
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<!-- Bid list frame -->
+			<Frame name="$parentTableList">
+				<Size>
+					<AbsDimension x="430" y="170" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-130" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16" />
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16" />
+					</TileSize>
+				</Backdrop>
+			</Frame>
+			<!-- Selected Bid frame -->
+			<Frame name="$parentSelected">
+				<Size>
+					<AbsDimension x="400" y="30" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-320" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16" />
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16" />
+					</TileSize>
+				</Backdrop>
+				<Layers>
+					<Layer level="ARTWORK">
+						<!-- Selected player -->
+						<FontString name="$parentBidder" justifyH="LEFT" inherits="GameFontNormal" text="">
+							<Size>
+								<AbsDimension x="100" y="16" />
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT">
+									<Offset>
+										<AbsDimension x="8" y="0" />
+									</Offset>
+								</Anchor>
+							</Anchors>
+							<Color r="1" g="1" b="1" />
+						</FontString>
+						<!-- Selected bid -->
+						<FontString name="$parentBid" justifyH="LEFT" inherits="GameFontNormal" text="">
+							<Size>
+								<AbsDimension x="80" y="16" />
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentBidder" />
+							</Anchors>
+						</FontString>
+						<!-- Selected Rank -->
+						<FontString name="$parentRank" justifyH="LEFT" inherits="GameFontNormal" text="">
+							<Size>
+								<AbsDimension x="220" y="16" />
+							</Size>
+							<Anchors>
+								<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentBid" />
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<!-- Cancel (delete bid) button -->
+			<Button name="CancelBidButton" inherits="UIPanelCloseButton">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="416" y="-318" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_OnCancelBidClick();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Button row to control auction -->
+			<Button name="PauseAuctionButton" inherits="UIPanelButtonTemplate" text="Pause Auction">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="40" y="-370" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnPauseAuctionClick();</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="FinishAuctionButton" inherits="UIPanelButtonTemplate" text="Finish Auction">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="170" y="-370" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnFinishAuctionClick();</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="RestartAuctionButton" inherits="UIPanelButtonTemplate" text="Restart Auction">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="300" y="-370" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnRestartAuctionClick();</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Button row to control AuctionUI -->
+			<Button name="AcceptBidButton" inherits="UIPanelButtonTemplate" text="Declare Winner">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="40" y="-400" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnAcceptBidClick();</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="CancelAuctionButton" inherits="UIPanelButtonTemplate" text="Cancel Auction">
+				<Size>
+					<AbsDimension x="120" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="300" y="-400" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>SOTA_OnCancelAuctionClick();</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentHeaderTexture" file="Interface\DialogFrame\UI-DialogBox-Header">
+					<Size>
+						<AbsDimension x="360" y="64" />
+					</Size>
+					<Anchors>
+						<Anchor point="TOP">
+							<Offset>
+								<AbsDimension x="0" y="12" />
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>
+				<FontString inherits="GameFontNormal" text="SotA Auction Window">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parentHeaderTexture">
+							<Offset>
+								<AbsDimension x="0" y="-14" />
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				this:SetMovable(true)
+				this:SetUserPlaced(true)
+				this:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnDragStart>
+				this:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				this:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
+	</Frame>
+</Ui>

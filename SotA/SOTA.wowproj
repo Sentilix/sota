@@ -11,18 +11,60 @@
     <OutputPath>.</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="AuctionUI.xml">
+    <Content Include="sota-auction.xml">
       <SubType>Frame</SubType>
     </Content>
-    <Content Include="AuctionUI.lua">
+    <Content Include="sota-auction.lua">
       <SubType>Code</SubType>
-      <DependentUpon>AuctionUI.xml</DependentUpon>
+      <DependentUpon>sota-auction.xml</DependentUpon>
     </Content>
     <Content Include="ReadMe.txt" />
+    <Content Include="sota-core.lua">
+      <SubType>Code</SubType>
+      <DependentUpon>sota-core.xml</DependentUpon>
+    </Content>
+    <Content Include="sota-core.xml">
+      <SubType>Frame</SubType>
+    </Content>
+    <Content Include="sota-dashboard.lua">
+      <SubType>Code</SubType>
+      <DependentUpon>sota-dashboard.xml</DependentUpon>
+    </Content>
+    <Content Include="sota-dashboard.xml">
+      <SubType>Frame</SubType>
+    </Content>
+    <Content Include="sota-options.lua">
+      <SubType>Code</SubType>
+      <DependentUpon>sota-options.xml</DependentUpon>
+    </Content>
+    <Content Include="sota-options.xml">
+      <SubType>Frame</SubType>
+    </Content>
+    <Content Include="sota-raidqueue.lua">
+      <SubType>Code</SubType>
+      <DependentUpon>sota-raidqueue.xml</DependentUpon>
+    </Content>
+    <Content Include="sota-raidqueue.xml">
+      <SubType>Frame</SubType>
+    </Content>
+    <Content Include="sota-titanpanel.lua">
+      <SubType>Code</SubType>
+      <DependentUpon>sota-titanpanel.xml</DependentUpon>
+    </Content>
+    <Content Include="sota-titanpanel.xml">
+      <SubType>Frame</SubType>
+    </Content>
     <Content Include="SotA.toc">
       <SubType>TableOfContents</SubType>
     </Content>
     <Content Include="sota.txt" />
+    <Content Include="sota-transactionlog.lua">
+      <SubType>Code</SubType>
+      <DependentUpon>sota-transactionlog.xml</DependentUpon>
+    </Content>
+    <Content Include="sota-transactionlog.xml">
+      <SubType>Frame</SubType>
+    </Content>
   </ItemGroup>
   <Import Project="$(DevEnvDir)\Extensions\Tools\MSBuild\AddonStudio\Wow\3.0\WowAddonStudio.targets" />
   <!--
