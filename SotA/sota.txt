@@ -96,9 +96,14 @@ DONE:
 (Beta3)
 - Added: "!pass" to allow players to pass (last) bid.
 - Refactored units and forms (finally!)
+(Beta4)
+- Added "Deja Vu" rules
+- Fixed bidding bug when going all out below minimum
+(RC1)
+- Added: UI for DKP history plus "/sota resethistory" to clear the local log.
+- Update: World dragon texts updated.
 TODO:
 - Added: Add dkp outside raid and do "bulk commits" (for guild donations)
-- Added: persisted log (personal - not getting merged with other officers), add: /resethistory
 - Bugfix: "you are not in the guild" bug when joining queue (often straight after logon).
 	* I might not be able to do anything about this, since the API is providing wrong info!
 

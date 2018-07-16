@@ -96,6 +96,82 @@
 		</NormalTexture>
 	</Button>
 
+	<!-- template for a DKP entry in the DKP History -->
+	<Button name="SOTA_DKPTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="320" y="16"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<!-- Timestamp -->
+				<FontString name="$parentTime" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="150" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="4" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<!-- + / - icon -->
+				<Texture name="$parentIcon" file="">
+					<Size>
+						<AbsDimension x="16" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentTime"/>
+					</Anchors>
+				</Texture>
+				<FontString name="$parentFiller1" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="4" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentIcon"/>
+					</Anchors>
+				</FontString>
+				<!-- Player name -->
+				<FontString name="$parentName" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="94" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentFiller1"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentDKP" justifyH="RIGHT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="50" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentCommand"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnClick>
+				PlaySound("igMainMenuOptionCheckBoxOn")
+				SOTA_OnDKPHistoryClick(this)
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.7, 0.7, 0.7, 0.7)
+			</OnLeave>
+			<OnLoad>
+				this:GetScript("OnLeave")(this)
+			</OnLoad>
+		</Scripts>
+		<NormalTexture name="$parentBG">
+			<Color r="0.0" g="0.0" b="0.0" a="0.0"/>
+		</NormalTexture>
+	</Button>
+
 	<!-- template for a Player entry in the Transaction UI (4 columns) -->
 	<Button name="SOTA_FourPlayerTemplate" hidden="true" virtual="true">
 		<Size>
@@ -200,7 +276,7 @@
 
 	
 
-	<!-- Transaction Log Frame -->
+	<!-- Main Log Frame -->
 	<Frame name="TransactionUIFrame" inherits="SOTAFrame">
 		<Layers>
 			<Layer>
@@ -216,7 +292,7 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<!-- Log frame -->
+			<!-- Transaction Log frame -->
 			<Frame name="$parentTableList" hidden="true">
 				<Size>
 					<AbsDimension x="320" y="322" />
@@ -242,6 +318,20 @@
 					</Anchor>
 				</Anchors>
 			</Frame>
+			<!-- DKP History Frame -->
+			<Frame name="$parentDKPHistory" hidden="true">
+				<Size>
+					<AbsDimension x="320" y="322" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-92" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Frame>
+
 			<!-- Top right corner close button -->
 			<Button name="$parentTopCloseButton" inherits="UIPanelCloseButton">
 				<Anchors>
@@ -255,6 +345,39 @@
 					</OnClick>
 				</Scripts>
 			</Button>
+			<!-- Log frame buttons: Transaction log -->
+			<Button name="TransactionLogButton" inherits="UIPanelButtonTemplate" text="View Transaction Log" hidden="true">
+				<Size>
+					<AbsDimension x="163" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="19" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_ViewTransactionLog();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Log frame buttons: DKP History -->
+			<Button name="DKPHistoryButton" inherits="UIPanelButtonTemplate" text="View DKP History">
+				<Size>
+					<AbsDimension x="163" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="19" y="-409" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_ViewDKPHistory();
+					</OnClick>
+				</Scripts>
+			</Button>
+
 			<!-- Log frame buttons: PREVious button -->
 			<Button name="PrevTransactionPageButton" inherits="UIPanelButtonTemplate" text="&lt;&lt; Prev">
 				<Size>

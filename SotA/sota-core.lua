@@ -164,6 +164,10 @@ function SOTA_GetTimestamp()
 	return date("%H:%M:%S", time());
 end
 
+function SOTA_GetDateTimestamp()
+	return date("%Y/%m/%d %H:%M:%S", time());
+end
+
 
 --[[
 --	Convert a msg so first letter is uppercase, and rest as lower case.
@@ -361,7 +365,7 @@ function SOTA_OnGuildRosterUpdate()
 	end
 	
 	SOTA_RefreshRaidQueue();
-	SOTA_RefreshTransactionLog();
+	SOTA_RefreshLogElements();
 end
 
 
@@ -440,7 +444,7 @@ function SOTA_OnRaidRosterUpdate(event, arg1, arg2, arg3, arg4, arg5)
 	RaidRosterLazyUpdate = true;
 
 	SOTA_RefreshRaidQueue();
-	SOTA_RefreshTransactionLog();
+	SOTA_RefreshLogElements();
 	
 	if SOTA_IsInRaid(true) then
 		SOTA_Synchronize();

@@ -35,13 +35,21 @@ local TRANSACTION_DETAILS_COLUMNS	= 4;
 local currentTransactionPage	= 1;	-- Current page shown (1=first page)
 local TransactionUIOpen			= false;
 local TransactionDetailsOpen	= false;
+local DKPHistoryPageOpen		= false;
+
+-- Used for alternating "colours" in DKP History view.
+local ALPHA_1 = 1.0;
+local ALPHA_2 = 0.7;
 
 
-function SOTA_RefreshTransactionLog()
+
+function SOTA_RefreshLogElements()
 	if TransactionUIOpen then
 		SOTA_RefreshTransactionElements();		
 	elseif TransactionDetailsOpen then
 		SOTA_RefreshTransactionDetails();	
+	elseif DKPHistoryPageOpen then
+		SOTA_RefreshHistoryElements();
 	end
 end
 
@@ -49,6 +57,7 @@ end
 function SOTA_OpenTransauctionUI()
 	TransactionUIOpen = true;
 	TransactionDetailsOpen = false;
+	DKPHistoryPageOpen = false;
 
 	getglobal("TransactionUIFrameTableList"):Show();
 	getglobal("PrevTransactionPageButton"):Show();
@@ -57,15 +66,36 @@ function SOTA_OpenTransauctionUI()
 	getglobal("BackToTransactionLogButton"):Hide();
 	getglobal("UndoTransactionButton"):Hide();
 	
-	SOTA_RefreshTransactionElements();
+	SOTA_RefreshLogElements();
+
 	TransactionUIFrame:Show();	
 end
 
 function SOTA_CloseTransactionUI()
 	TransactionUIOpen = false;
 	TransactionDetailsOpen = false;
+	DKPHistoryPageOpen = false;
 	TransactionUIFrame:Hide();
 end
+
+function SOTA_ViewTransactionLog()
+	currentTransactionPage = 1;
+	TransactionUIOpen = true;
+	TransactionDetailsOpen = false;
+	DKPHistoryPageOpen = false;
+	SOTA_RefreshLogElements();
+	SOTA_UpdatePageControls();
+end;
+
+function SOTA_ViewDKPHistory()
+	currentTransactionPage = 1;
+	TransactionUIOpen = false;
+	TransactionDetailsOpen = false;
+	DKPHistoryPageOpen = true;
+	SOTA_RefreshLogElements();
+	SOTA_UpdatePageControls();
+end;
+
 
 function SOTA_OpenTransactionDetails()
 	TransactionUIOpen = false;
@@ -82,10 +112,6 @@ function SOTA_CloseTransactionDetails()
 	SOTA_OpenTransauctionUI();
 end
 
-
---[[
---	Show last <n> transactions:
---]]
 function SOTA_RefreshTransactionElements()
 	if not TransactionUIOpen then
 		return;
@@ -172,39 +198,196 @@ function SOTA_RefreshTransactionElements()
 
 		frame:Show();
 	end
-	
-	
-	-- Refresh Transaction Buttons
-	local numPages = ceil(numTransactions / SOTA_MAX_TRANSACTIONS_DISPLAYED);
 
-	if currentTransactionPage > 1 then
-		getglobal("PrevTransactionPageButton"):Enable();
-	else
-		getglobal("PrevTransactionPageButton"):Disable();
-	end
-	
-	if numPages > currentTransactionPage then
-		getglobal("NextTransactionPageButton"):Enable();
-	else
-		getglobal("NextTransactionPageButton"):Disable();
-	end
+	SOTA_UpdatePageControls();
 end
+
+
+function SOTA_GetIndividuelDKPHistory()
+	local hrLog = { };
+
+	-- Generate array with all entries:
+	local index = 1;
+	for n=1, table.getn(SOTA_HISTORY_DKP), 1 do
+		local entry = SOTA_HISTORY_DKP[n];		-- { timestamp, tid, author, description, state, { names, dkp }, zone }
+		for f=1, table.getn(entry[6]), 1 do
+			local info = entry[6][f];
+			-- Remap into { timestamp, tid, description, name, dkp, zone }
+			hrLog[index] = { entry[1], entry[2], entry[4], info[1], info[2], entry[7] };
+			index = index + 1;
+		end;
+	end
+
+	return hrLog;
+end;
+
+
+--[[
+--	Show last <n> History entries:
+--	Added in: 1.1.0
+--]]
+function SOTA_RefreshHistoryElements()
+	if not DKPHistoryPageOpen then
+		return;
+	end
+
+	local timestamp, tid, description, name, dkp, zone;
+
+	local hrLog = SOTA_GetIndividuelDKPHistory();
+	SOTA_SortTableDescending(hrLog, 1);
+
+
+	local lastTimestamp = "";
+	local lastTID = 0;
+	local currentAlpha = ALPHA_1;
+	local numTransactions = table.getn(hrLog);
+	for n=0, SOTA_MAX_TRANSACTIONS_DISPLAYED, 1 do
+		if n == 0 then
+			timestamp = "Time";
+			tid = "ID";
+			name = "Player";
+			description = "Command";
+			dkp = "DKP";
+			zone = "";
+		else
+			local index = n + ((currentTransactionPage - 1) * SOTA_MAX_TRANSACTIONS_DISPLAYED);
+			if numTransactions < index then
+				timestamp = "";
+				tid = "";
+				name = "";
+				description = "";
+				dkp = "";
+				zone = "";
+			else
+				local hr = hrLog[index];
+				timestamp = hr[1];
+				tid = hr[2];
+				description = hr[3];
+				name = hr[4];
+				dkp = 1 * hr[5];
+				zone = hr[6];
+			end
+		end
+
+		if (lastTimestamp == timestamp) and (lastTID == tid) then
+		else
+			if currentAlpha == ALPHA_1 then
+				currentAlpha = ALPHA_2;
+			else
+				currentAlpha = ALPHA_1;
+			end;
+			lastTimestamp = timestamp;
+			lastTID = tid;
+		end;
+
+
+		local icon = "";
+		if tonumber(dkp) then
+			if dkp > 0 then
+				icon = "Interface\\ICONS\\Spell_ChargePositive";
+			elseif dkp < 0 then
+				icon = "Interface\\ICONS\\Spell_ChargeNegative";
+			end
+		end
+
+		local frame = getglobal("TransactionUIFrameDKPHistoryEntry"..n);
+		getglobal(frame:GetName().."Time"):SetText(timestamp);
+		getglobal(frame:GetName().."Icon"):SetTexture(icon);
+		getglobal(frame:GetName().."Name"):SetText(name);
+		getglobal(frame:GetName().."DKP"):SetText(dkp);
+
+		if (n > 0) then
+			local color = { 128, 128, 128 };
+			local guildInfo = SOTA_GetGuildPlayerInfo(name);
+			if guildInfo then
+				color = SOTA_GetClassColorCodes(guildInfo[3]);
+			end
+			getglobal(frame:GetName().."Name"):SetTextColor((color[1]/255), (color[2]/255), (color[3]/255), 255);
+
+			-- TODO: I chat change the background color (why?), so use Alpha instead. A hack, indeed ... :-(
+			frame:SetAlpha(currentAlpha);
+			frame:Enable();
+		else
+			frame:Disable();
+		end
+
+		frame:Show();
+	end
+
+	SOTA_UpdatePageControls();
+end
+
+
+function SOTA_UpdatePageControls()
+	PrevTransactionPageButton:Disable();
+	NextTransactionPageButton:Disable();
+
+	if DKPHistoryPageOpen then
+		-- DKP History log page:
+		DKPHistoryButton:Hide();
+		TransactionLogButton:Show();
+
+		-- Refresh navigation Buttons
+		local hrLog = SOTA_GetIndividuelDKPHistory();
+		local numTransactions = table.getn(hrLog);
+		local numPages = ceil(numTransactions / SOTA_MAX_TRANSACTIONS_DISPLAYED);
+
+		if currentTransactionPage > 1 then
+			PrevTransactionPageButton:Enable();
+		end
+	
+		if numPages > currentTransactionPage then
+			NextTransactionPageButton:Enable();
+		end
+
+		TransactionUIFrameTitle:SetText("DKP History Log");
+		TransactionUIFrameTableList:Hide();
+		TransactionUIFrameDKPHistory:Show();
+	else
+		-- Transaction log page:
+		-- Refresh navigation Buttons
+		local numTransactions = table.getn(SOTA_transactionLog);
+		local numPages = ceil(numTransactions / SOTA_MAX_TRANSACTIONS_DISPLAYED);
+
+		if currentTransactionPage > 1 then
+			PrevTransactionPageButton:Enable();
+		end
+	
+		if numPages > currentTransactionPage then
+			NextTransactionPageButton:Enable();
+		end
+
+		DKPHistoryButton:Show();
+
+		TransactionUIFrameTitle:SetText("Transaction Log");
+		TransactionLogButton:Hide();
+		TransactionUIFrameTableList:Show();
+		TransactionUIFrameDKPHistory:Hide();
+	end
+end;
 
 function SOTA_PreviousTransactionUIPage()
 	if currentTransactionPage > 1 then
 		currentTransactionPage = currentTransactionPage - 1;
 	end
-	SOTA_RefreshTransactionElements();
+	SOTA_RefreshLogElements();
 end
 
 function SOTA_NextTransactionUIPage()
-	local numTransactions = table.getn(SOTA_transactionLog);
+	local numTransactions;
+	if DKPHistoryPageOpen then
+		local hrLog = SOTA_GetIndividuelDKPHistory();
+		numTransactions = table.getn(hrLog);
+	else
+		numTransactions = table.getn(SOTA_transactionLog);
+	end;
+
 	local numPages = ceil(numTransactions / SOTA_MAX_TRANSACTIONS_DISPLAYED);
 	
 	if numPages > currentTransactionPage then
 		currentTransactionPage = currentTransactionPage + 1;
 	end
-	SOTA_RefreshTransactionElements();
+	SOTA_RefreshLogElements();
 end
 
 function SOTA_GetNextTransactionID()
@@ -294,12 +477,16 @@ end
 --]]
 function SOTA_TransactionLogUIInit()
 	for n=0,SOTA_MAX_TRANSACTIONS_DISPLAYED, 1 do
-		local entry = CreateFrame("Button", "$parentEntry"..n, TransactionUIFrameTableList, "SOTA_LogTemplate");
-		entry:SetID(n);
+		local lgEntry = CreateFrame("Button", "$parentEntry"..n, TransactionUIFrameTableList, "SOTA_LogTemplate");
+		local dhEntry = CreateFrame("Button", "$parentEntry"..n, TransactionUIFrameDKPHistory, "SOTA_DKPTemplate");
+		lgEntry:SetID(n);
+		dhEntry:SetID(n);
 		if n == 0 then
-			entry:SetPoint("TOPLEFT", 4, -4);
+			lgEntry:SetPoint("TOPLEFT", 4, -4);
+			dhEntry:SetPoint("TOPLEFT", 4, -4);
 		else
-			entry:SetPoint("TOP", "$parentEntry"..(n-1), "BOTTOM");
+			lgEntry:SetPoint("TOP", "$parentEntry"..(n-1), "BOTTOM");
+			dhEntry:SetPoint("TOP", "$parentEntry"..(n-1), "BOTTOM");
 		end	
 	end
 	
@@ -339,7 +526,8 @@ function SOTA_LogIncludeExcludeTransaction(transactioncmd, name, tid, dkp)
 	
 	local tidData = { SOTA_GetTimestamp(), tid, author, transactioncmd, TRANSACTION_STATE_ACTIVE, transactions };
 	
-	SOTA_RefreshTransactionElements();
+	SOTA_RefreshLogElements();
+
 	SOTA_BroadcastTransaction(tidData);
 end
 
@@ -361,15 +549,15 @@ function SOTA_LogMultipleTransactions(transactioncmd, transactions)
 	local tid = SOTA_GetNextTransactionID();
 
 	SOTA_transactionLog[tid] = { SOTA_GetTimestamp(), tid, author, transactioncmd, TRANSACTION_STATE_ACTIVE, transactions };
-	SOTA_RefreshTransactionElements();
+	SOTA_RefreshLogElements();
+
 	SOTA_BroadcastTransaction(SOTA_transactionLog[tid]);
 
 	-- Insert transaction (including Zone) into DKP history log:
 	local logentry = SOTA_transactionLog[tid];
+	logentry[1] = SOTA_GetDateTimestamp();
 	logentry[7] = GetRealZoneText();
 	table.insert(SOTA_HISTORY_DKP, logentry);
-
---	SOTA_PrintDKPHistory();
 end
 
 
@@ -381,22 +569,6 @@ function SOTA_ClearLocalHistory()
 	SOTA_HISTORY_DKP = { };
 	localEcho("Local history was cleared.");
 end;
-
-
---[[
---	Currently only used for debugging: Output complete history.
---]]
-function SOTA_PrintDKPHistory()
-	echo("DKP HISTORY:");
-	for n=1, table.getn(SOTA_HISTORY_DKP), 1 do
-		local b = SOTA_HISTORY_DKP[n];
-		for f=1,table.getn(b[6]), 1 do
-			local p = b[6][f];
-			echo(string.format("* %s: %d, %s, %s, %d, PLR=%s, DKP=%d, ZONE=%s", b[1], 1*b[2], b[3], b[4], 1*b[5], p[1], 1*p[2], b[7]));
-		end;
-	end;
-end;
-
 
 
 function SOTA_RequestUndoTransaction(transactionID)
@@ -525,4 +697,38 @@ function SOTA_OnTransactionLogDetailPlayer(object)
 		SOTA_ToggleIncludePlayerInTransaction(playername);
 	end;
 end
+
+--[[
+--	Output DKP details from DKP History.
+--	Added in 1.1.0
+--]]
+function SOTA_OnDKPHistoryClick(object)
+	local msgID = object:GetID();
+	local timestamp = getglobal(object:GetName().."Time"):GetText();
+	local name = getglobal(object:GetName().."Name"):GetText();
+
+	local entry, info, dkp;
+	for n=1, table.getn(SOTA_HISTORY_DKP), 1 do
+		entry = SOTA_HISTORY_DKP[n];
+		if (entry[1] == timestamp) then
+			for f=1, table.getn(entry[6]), 1 do
+				info = entry[6][f];
+				if (info[1] == name) then
+					dkp = 1*info[2];
+					localEcho("----- DKP details -----");
+					localEcho(string.format(" - Player: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.." - Zone: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.."", info[1], entry[7]));
+
+					if dkp < 0 then
+						localEcho(string.format(" - DKP subtracted: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT..", Total players involved: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", math.abs(dkp), table.getn(entry[6])));
+					else
+						localEcho(string.format(" - DKP added: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT..", Total players involved: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", math.abs(dkp), table.getn(entry[6])));
+					end;
+					localEcho(string.format(" - Date: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", TID: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", entry[1], 1*entry[2]));
+					localEcho(string.format(" - Command: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", Officer: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.."", entry[4], entry[3]));
+					return;
+				end;
+			end;
+		end;
+	end;
+end;
 

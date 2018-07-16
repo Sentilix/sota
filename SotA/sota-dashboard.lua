@@ -1156,20 +1156,29 @@ end
 --
 function SOTA_OnZoneChanged()
 	if SOTA_IsInRaid(true) then
-		local dkp = SOTA_GetStartingDKP();
+		local dkp = SOTA_GetBossDKPValue("WorldBosses");
+		local min = SOTA_GetStartingDKP();
 		if dkp > 0 then
 			local zonetext = GetRealZoneText();
 			if zonetext == "Azshara" then
 				zonetext = zonetext .." (Azuregos)";
 			elseif zonetext == "Blasted Lands" then
 				zonetext = zonetext .." (Lord Kazzak)";
-			elseif zonetext == "Ashenvale" or zonetext == "Duskwood" or zonetext == "The Hinterlands" or zonetext == "Feralas" then
-				zonetext = zonetext .." (Emerald Dream)";
+			elseif zonetext == "Ashenvale" then
+				zonetext = zonetext .." (Emerald Dream: Taerar)";
+			elseif zonetext == "Duskwood" then
+				zonetext = zonetext .." (Emerald Dream: Lethon)";
+			elseif zonetext == "The Hinterlands" then
+				zonetext = zonetext .." (Emerald Dream: Emeriss)";
+			elseif zonetext == "Feralas" then
+				zonetext = zonetext .." (Emerald Dream: Ysondre)";
+			else
+				return;
 			end
 			
 			localEcho(string.format("Instance: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT, zonetext));
 			localEcho(string.format("Boss value: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.." DKP", dkp*10));
-			localEcho(string.format("Minimum bid: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.." DKP", dkp));
+			localEcho(string.format("Minimum bid: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.." DKP", min));
 		end
 	end
 end
