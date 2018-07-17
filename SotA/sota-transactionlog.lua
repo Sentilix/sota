@@ -203,13 +203,18 @@ function SOTA_RefreshTransactionElements()
 end
 
 
+--[[
+--	Get transactions splitted up, so each line contains one player+dkp
+--	Added in 1.1.0
+--]]
 function SOTA_GetIndividuelDKPHistory()
 	local hrLog = { };
 
 	-- Generate array with all entries:
 	local index = 1;
 	for n=1, table.getn(SOTA_HISTORY_DKP), 1 do
-		local entry = SOTA_HISTORY_DKP[n];		-- { timestamp, tid, author, description, state, { names, dkp }, zone }
+		-- DKP is stored as { timestamp, tid, author, description, state, { names, dkp }, zone }
+		local entry = SOTA_HISTORY_DKP[n];		
 		for f=1, table.getn(entry[6]), 1 do
 			local info = entry[6][f];
 			-- Remap into { timestamp, tid, description, name, dkp, zone }
@@ -304,7 +309,7 @@ function SOTA_RefreshHistoryElements()
 			end
 			getglobal(frame:GetName().."Name"):SetTextColor((color[1]/255), (color[2]/255), (color[3]/255), 255);
 
-			-- TODO: I chat change the background color (why?), so use Alpha instead. A hack, indeed ... :-(
+			-- TODO: I can't change the background color (why?), so use Alpha instead. A hack, indeed ... :-(
 			frame:SetAlpha(currentAlpha);
 			frame:Enable();
 		else
@@ -558,7 +563,7 @@ end
 
 --[[
 --	Insert transaction (including Zone) into DKP history log.
---	Will merge with existing transaction (timestamp + TID) if found :-(
+--	Will merge with existing transaction (timestamp + TID) if found
 --	Added in 1.1.0
 --]]
 function SOTA_CopyTransactionToHistory(transaction)

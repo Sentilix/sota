@@ -428,7 +428,8 @@ function SOTA_DisplayHelp()
 	echo("  !listqueue    Returns a list of people who are currently in queue.");
 	echo("  !bid <dkp>    Bid <dkp> for item currently being on auction.");
 	echo("  !bid min    Bid the minimum bid on item currently being on auction.");
-	echo("  !bid max    Bid everyting (go all out) on item currently being on auction");	
+	echo("  !bid max    Bid everything (go all out) on item currently being on auction");	
+	echo("  !Pass    Cancel a bid. Only allowed if the cancelled bid is the current active bid.");	
 	return false;
 end
 
