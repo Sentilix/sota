@@ -109,6 +109,8 @@ DONE:
 (RC3)
 - Bugfix: Time format wrong in Transaction log - fixed.
 - Bugfix: Debug message removed from Zone checker (Oops :-)
+(Release)
+- Bugfix: Transaction log details are not hidden when changing log view - fixed.
 TODO:
 - Added: Add dkp outside raid and do "bulk commits" (for guild donations)
 - Bugfix: "you are not in the guild" bug when joining queue (often straight after logon).

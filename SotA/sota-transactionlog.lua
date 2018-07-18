@@ -100,12 +100,14 @@ end;
 function SOTA_OpenTransactionDetails()
 	TransactionUIOpen = false;
 	TransactionDetailsOpen = true;
-	getglobal("TransactionUIFrameTableList"):Hide();
-	getglobal("PrevTransactionPageButton"):Hide();
-	getglobal("NextTransactionPageButton"):Hide();
-	getglobal("TransactionUIFramePlayerList"):Show();
-	getglobal("BackToTransactionLogButton"):Show();
-	getglobal("UndoTransactionButton"):Show();
+	DKPHistoryPageOpen = false;
+	--TransactionUIFrameTableList:Hide();
+	--PrevTransactionPageButton:Hide();
+	--NextTransactionPageButton:Hide();
+	--TransactionUIFramePlayerList:Show();
+	--BackToTransactionLogButton:Show();
+	--UndoTransactionButton:Show();
+	SOTA_UpdatePageControls();
 end
 
 function SOTA_CloseTransactionDetails()
@@ -326,6 +328,10 @@ end
 function SOTA_UpdatePageControls()
 	PrevTransactionPageButton:Disable();
 	NextTransactionPageButton:Disable();
+	TransactionUIFramePlayerList:Hide();
+	BackToTransactionLogButton:Hide();
+	UndoTransactionButton:Hide();
+	TransactionUIFrameTableList:Hide();
 
 	if DKPHistoryPageOpen then
 		-- DKP History log page:
@@ -346,10 +352,9 @@ function SOTA_UpdatePageControls()
 		end
 
 		TransactionUIFrameTitle:SetText("DKP History Log");
-		TransactionUIFrameTableList:Hide();
 		TransactionUIFrameDKPHistory:Show();
 	else
-		-- Transaction log page:
+		-- Transaction log/details page:
 		-- Refresh navigation Buttons
 		local numTransactions = table.getn(SOTA_transactionLog);
 		local numPages = ceil(numTransactions / SOTA_MAX_TRANSACTIONS_DISPLAYED);
@@ -366,8 +371,18 @@ function SOTA_UpdatePageControls()
 
 		TransactionUIFrameTitle:SetText("Transaction Log");
 		TransactionLogButton:Hide();
-		TransactionUIFrameTableList:Show();
 		TransactionUIFrameDKPHistory:Hide();
+
+		if TransactionDetailsOpen then
+			PrevTransactionPageButton:Hide();
+			NextTransactionPageButton:Hide();
+			TransactionUIFramePlayerList:Show();
+			BackToTransactionLogButton:Show();
+			UndoTransactionButton:Show();
+		else
+			TransactionUIFrameTableList:Show();
+		end;
+
 	end
 end;
 
