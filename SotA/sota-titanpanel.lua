@@ -10,7 +10,6 @@
 
 
 function TitanPanelSOTAButton_OnLoad()
-	localEcho("Initializing Titan Panel");
     this.registry = {
         id = SOTA_ID,
         menuText = SOTA_TITAN_TITLE,
@@ -23,7 +22,6 @@ function TitanPanelSOTAButton_OnLoad()
 end
 
 function TitanPanelSOTAButton_GetTooltipText()
-	localEcho("Fetching Titan caption");
     return "Click to toggle option panel";
 end
 

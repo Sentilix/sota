@@ -561,31 +561,34 @@ function SOTA_LogMultipleTransactions(transactioncmd, transactions)
 	SOTA_CopyTransactionToHistory(SOTA_transactionLog[tid]);
 end
 
+
 --[[
 --	Insert transaction (including Zone) into DKP history log.
 --	Will merge with existing transaction (timestamp + TID) if found
 --	Added in 1.1.0
 --]]
 function SOTA_CopyTransactionToHistory(transaction)
-	transaction[1] = SOTA_GetDateTimestamp();
-	transaction[7] = GetRealZoneText();
+	local tr = SOTA_CloneTable(transaction);
 
-	local timestamp = transaction[1];
-	local tid = transaction[2];
+	tr[1] = SOTA_GetDateTimestamp();
+	tr[7] = GetRealZoneText();
+
+	local timestamp = tr[1];
+	local tid = tr[2];
 
 	for n=1, table.getn(SOTA_HISTORY_DKP), 1 do
 		local entry = SOTA_HISTORY_DKP[n];
 		-- Same transaction found; replace player data with the current one:
 		if (entry[1] == timestamp) and (entry[2] == tid) then
 			-- However, verify the new array is larger than the old one (it should be!)
-			if(table.getn(transaction[6]) > table.getn(SOTA_HISTORY_DKP[n][6])) then
-				SOTA_HISTORY_DKP[n][6] = transaction[6];
+			if(table.getn(tr[6]) > table.getn(SOTA_HISTORY_DKP[n][6])) then
+				SOTA_HISTORY_DKP[n][6] = tr[6];
 			end;
 			return;
 		end;
 	end;
 
-	table.insert(SOTA_HISTORY_DKP, transaction);
+	table.insert(SOTA_HISTORY_DKP, tr);
 end;
 
 

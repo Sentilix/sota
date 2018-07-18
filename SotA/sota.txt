@@ -106,6 +106,9 @@ DONE:
 - Bugfix: sharerange did not share the dkp as inteded - fixed.
 - Bugfix: SOTA_RefreshTransactionLog() no longer exists - fixed.
 - Bugfix: shared and ranged dkp appeared multiple times in history - fixed.
+(RC3)
+- Bugfix: Time format wrong in Transaction log - fixed.
+- Bugfix: Debug message removed from Zone checker (Oops :-)
 TODO:
 - Added: Add dkp outside raid and do "bulk commits" (for guild donations)
 - Bugfix: "you are not in the guild" bug when joining queue (often straight after logon).
