@@ -111,12 +111,12 @@ DONE:
 - Bugfix: Debug message removed from Zone checker (Oops :-)
 (Release)
 - Bugfix: Transaction log details are not hidden when changing log view - fixed.
+
 TODO:
+- Added: Possible to configure raid messages. (sync system?)
 - Added: Add dkp outside raid and do "bulk commits" (for guild donations)
 - Bugfix: "you are not in the guild" bug when joining queue (often straight after logon).
 	* I might not be able to do anything about this, since the API is providing wrong info!
-
-
 Known issues:
 - Boss DKP values are not persisted (unable to reproduce)
 New features:
