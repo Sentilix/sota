@@ -148,6 +148,13 @@ function SOTA_HandleSOTACommand(msg)
 	end
 	
 
+	--	Command: rule
+	--	Syntax: "rule"
+	--	Added for rule engine testing.
+	if cmd == "rule" then
+		return SOTA_PerformSampleRuleTest();
+	end;
+
 
 	--	Command: help
 	--	Syntax: "config"	

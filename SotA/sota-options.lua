@@ -629,3 +629,213 @@ function SOTA_InitializeTextElements()
 end
 
 
+
+--[[
+--	RULE ENGINE SECTION
+--]]
+
+
+
+--[[
+Each rule is set up as a statement which can yield TRUE or FALSE.
+If a statement yields TRUE, it will perform one of the following:
+* Exit with success (the person can bid)
+* Exit with error (custom text is returned).
+This means that a rule must have a type: is it an INCLUSIVE (=success) rule or an EXCLUSIVE (=error) rule?
+
+A rule is build up as:
+[Result] = [Parameter] [Operator] [Parameter] [And Operator]
+
+[Result] can be "SUCCESS" or "FAIL".
+[Parameter] can be:
+* "DKP" or "dkp"
+* "RANK" or "rank"
+When uppercase is used, parameter refers to the current highest bid.
+When lowercase is used, parameter refers to the current bidder.
+
+[Operator] can be:
+* ">", ">=", "<=", "<>" and "=".
+* "+", "-" is considers and likely to be added as well.
+* "!" was considered, but currently not part of syntax.
+
+[And Operator] can be:
+* "&" (AND). "OR" is not supported, since this can be made as the next rule in the chain.
+*	It is possible that the "AND" operator simply ties the next rule in the chain, so each rule contains
+	exactly two parameters and one operator plus an optional AND operator.
+
+Some examples:
+	"SUCCESS = RANK > 3"
+means if RANK is > 3 the bid is accepted, otherwise next rule in the chain will be checked.
+
+	"ERROR = RANK <= 3"
+means if RANK <= 3 the bid is rejected with a customized error message.
+
+
+Sample setup:
+
+// FAIL if 
+[0]	"FAIL = DKP >= 1000 & rank < 5 & RANK < 5 & rank < RANK" -> "You cannot bid more than 5000 DKP as a Trial against a Member+"
+
+
+
+--]]
+
+function SOTA_PerformSampleRuleTest()
+	-- "FAIL = DKP >= 1000 & rank < 5 & RANK < 5 & rank < RANK"
+	-- RANK/rank --> R/R, DKP/dkp --> D/d
+	local rule = "FAIL=D>=1000&r<5&R<5&r<R";
+
+	SOTA_ParseRule(rule);
+end;
+
+
+SOTA_RULETYPE_FAIL = "FAIL";
+SOTA_RULETYPE_SUCCESS = "SUCCESS";
+
+function SOTA_ParseRule(rule)
+	local RuleInfo = { }
+
+	RuleInfo["VALID"] = false;
+	RuleInfo["MESSAGE"] = "";
+
+	-- TODO:
+	-- * Remove all spaces in the rule. Not needed if rule is auto-generated.
+
+	--	1: Split by the "="; that way we know if this is a SUCCESS or FAIL rule:
+	local _, _, ruletype, ruleoper = string.find(rule, "(%a+)=(.+)");
+
+	if(string.upper(ruletype) == SOTA_RULETYPE_FAIL) then
+		RuleInfo["RULETYPE"] = SOTA_RULETYPE_FAIL;
+	elseif(string.upper(ruletype) == SOTA_RULETYPE_SUCCESS) then
+		RuleInfo["RULETYPE"] = SOTA_RULETYPE_SUCCESS;
+	else
+		RuleInfo["ERROR"] = string.format("Unknown rule type: '%s'", ruletype);
+		localEcho(RuleInfo["ERROR"]);
+		return RuleInfo;
+	end
+
+	--	2: Split by the "&"; this will split the individual operations.
+	local operations = SOTA_StringSplit(ruleoper, '\&');
+
+	--	2.1: Prioritize each operation:
+	--	(not really needed as long we don't support "+" and "-")
+
+	--	2.2: Validate each operation and substitute values
+	local statementResult = true;
+	for n=1,table.getn(operations),1 do
+		local _, _, p1, operator, p2 = string.find(operations[n], "([%a%d]+)([><=]+)([%a%d]+)");
+		--echo(string.format("%d: P1='%s', Oper='%s', P2='%s'", n, p1, operator, p2));
+
+		local v1 = SOTA_SubstituteParameter(p1);
+		local v2 = SOTA_SubstituteParameter(p2);
+		--echo(string.format("%d: V1='%d', Oper='%s', V2='%d'", n, v1, operator, v2));
+
+		-- Do the calculation of each statement: As long they yield TRUE, the entire statement is TRUE as well.
+		statementResult = SOTA_CalculateOperation(v1, operator, v2);
+		
+		if not(statementResult) then
+			-- FALSE cannot skip a rule, but it will skip the loop: entire statement is FALSE.
+			if RuleInfo["RULETYPE"] = SOTA_RULETYPE_FAIL then
+				RuleInfo["VALID"] = true;
+				RuleInfo["RESULT"] = false;
+				localEcho("Rule is INVALID; move to next rule");
+				return RuleInfo;
+			end;
+		end;
+	end;
+
+	if(statementResult) then
+		-- If entire statement is TRUE, then we are done!
+		if RuleInfo["RULETYPE"] = SOTA_RULETYPE_FAIL then
+			RuleInfo["MESSAGE"] = "(A custom message for this rule)";
+		end;
+		RuleInfo["VALID"] = true;
+		RuleInfo["RESULT"] = true;
+		localEcho(string.format("Rule is VALID; %s = %s", RuleInfo["RULETYPE"], operations[n]));
+		return RuleInfo;
+	end;
+
+	-- Undefined result; we need a flag to pick next
+	RuleInfo["VALID"] = false;
+	RuleInfo["RESULT"] = true;
+	localEcho(string.format("Rule is VALID; %s = (All passed)", RuleInfo["RULETYPE"]));
+	return RuleInfo;
+	
+	--[[
+	-- 3. Pick next rule (not part of this)
+	-- 4. End with SUCCESS.
+	-- If enture statement is TRUE, then we are done!
+	RuleInfo["VALID"] = true;
+	RuleInfo["RESULT"] = true;
+	localEcho(string.format("Rule is VALID; %s = (All passed)", RuleInfo["RULETYPE"]));
+	return RuleInfo;
+	--]]
+end;
+
+
+function SOTA_CalculateOperation(param1, operator, param2)
+	local statementResult;
+
+	if(operator == ">") then
+		statementResult = (param1 > param2);
+	elseif(operator == ">=") then
+		statementResult = (param1 >= param2);
+	elseif(operator == "<=") then
+		statementResult = (param1 <= param2);
+	elseif(operator == "<") then
+		statementResult = (param1 < param2);
+	elseif(operator == "<>") then
+		statementResult = (param1 ~= param2);
+	elseif(operator == "=") then
+		statementResult = (param1 == param2);
+	else
+		localEcho(string.format("Unknown operator: '%s'", operator));
+		return nil;
+	end;
+
+	if(statementResult) then
+		localEcho(string.format("%d %s %d = TRUE", param1, operator, param2));
+	else
+		localEcho(string.format("%d %s %d = FALSE", param1, operator, param2));
+	end;
+
+	return statementResult;
+end;
+
+function SOTA_SubstituteParameter(parameter)
+	local value = nil;
+	if(parameter == "r") then
+		value = 5;
+	elseif(parameter == "R") then
+		value = 4;
+	elseif(parameter == "d") then
+		value = 1200;
+	elseif(parameter == "D") then
+		value = 1100;
+	else
+		value = tonumber(parameter);
+		if value == nil then
+			localEcho(string.format("Parameter '%s' is not a supported parameter.", parameter));
+		end;
+	end;
+
+	return value;
+end;
+
+
+
+
+function SOTA_StringSplit(inputstring, separator)
+	if not separator then
+		separator = "%s"
+	end
+
+	local stringlist = {};
+	local index = 1
+	for str in string.gmatch(inputstring, "([^"..separator.."]+)") do
+		stringlist[index] = str
+		index = index + 1
+	end
+
+	return stringlist;
+end
