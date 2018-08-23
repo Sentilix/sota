@@ -107,13 +107,16 @@ Roadmap:
 DONE:
 - [Feature 1.2.0-1] Added: Configurable raid messages.
 - [Feature 1.2.0-2] Added: Configurable message channels
+- Bugfix: "!" params check handles non-"!" as valid chars - fixed
 TODO:
-- [Feature 1.2.0-3] Added: Sync button for Sync common config settings
-- [Feature 1.2.0-4] Added: Rank rule engine (how the fuck do we do this?)
+- [Feature 1.2.0-3] Added: Rank rule engine (how the fuck do we do this?)
+- [Feature 1.2.0-4] Added: Sync button for Sync common config settings
 BUGS:
 - Clicking a Config button resets the current window position
 
 
+Feature details:
+----------------
 [Feature 1.2.0-1] Configurable raid messages:
 - Identify all raid messages
 	"Auction open for %s"
@@ -128,20 +131,20 @@ BUGS:
 
 
 [Feature 1.2.0-2] Configurable message channels
-- Add radio buttons for [Raid], [RW], [Yell], [Say], [Guild] (more?)
+- Add options for [Raid], [RW], [Yell], [Say], [Guild] (more?)
 - Remove SOTA_CONFIG_OutputChannel setting (obsolete)
 
 
-[Feature 1.2.0-3] Sync button for Sync common config settings
-- Identify settings to be sync'ed
-- Create UI for sync'ing (show people with SotA in raid + version of Sota + version of Sync)
-- Implement sync'ing, including some kind of version id + name of "owner" (last person to change settings)
-
-
-[Feature 1.2.0-4] Rank rule engine (how the fuck do we do this?)
+[Feature 1.2.0-3] Rank rule engine (how the fuck do we do this?)
 - Design a rule engine.
 - Create UI to fit the design.
 - Implement rule engine
+
+
+[Feature 1.2.0-4] Sync button for Sync common config settings
+- Identify settings to be sync'ed
+- Create UI for sync'ing (show people with SotA in raid + version of Sota + version of Sync)
+- Implement sync'ing, including some kind of version id + name of "owner" (last person to change settings)
 
 
 

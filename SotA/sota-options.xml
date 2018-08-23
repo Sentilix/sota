@@ -2,6 +2,7 @@
 	<Script file="sota-options.lua" />
 
 	<!-- Configuration frame template -->
+	<!-- Frame name="SOTA_ConfigurationFrameTemplate" parent="UIParent" toplevel="true" hidden="true" virtual="true" -->
 	<Frame name="SOTA_ConfigurationFrameTemplate" parent="UIParent" toplevel="true" hidden="true" virtual="true">
 		<Size>
 			<AbsDimension x="384" y="512" />
@@ -112,7 +113,7 @@
 					</OnClick>
 				</Scripts>
 			</Button>
-			<!-- Line 1: Config 1 button -->
+			<!-- Line 1, button 1: Bidding config button -->
 			<Button name="$parentConfigTabButton1" inherits="UIPanelButtonTemplate" text="Bidding">
 				<Size>
 					<AbsDimension x="80" y="20" />
@@ -128,7 +129,7 @@
 					</OnClick>
 				</Scripts>
 			</Button>
-			<!-- Line 1: Config 2 button -->
+			<!-- Line 1, button 2: Boss DKP config button -->
 			<Button name="$parentConfigTabButton2" inherits="UIPanelButtonTemplate" text="Boss DKP">
 				<Size>
 					<AbsDimension x="80" y="23" />
@@ -144,7 +145,7 @@
 					</OnClick>
 				</Scripts>
 			</Button>
-			<!-- Line 1: Config 3 button -->
+			<!-- Line 1, button 3: Misc DKP config button -->
 			<Button name="$parentConfigTabButton2" inherits="UIPanelButtonTemplate" text="Misc DKP">
 				<Size>
 					<AbsDimension x="80" y="23" />
@@ -161,7 +162,7 @@
 				</Scripts>
 			</Button>
 
-			<!-- Line 2: Config 4 button -->
+			<!-- Line 2, button 1: Messages config button -->
 			<Button name="$parentConfigTabButton4" inherits="UIPanelButtonTemplate" text="Messages">
 				<Size>
 					<AbsDimension x="80" y="20" />
@@ -177,7 +178,7 @@
 					</OnClick>
 				</Scripts>
 			</Button>
-			<!-- Line 2: Config 5 button -->
+			<!-- Line 2, button 2: Bid Rules config button -->
 			<Button name="$parentConfigTabButton5" inherits="UIPanelButtonTemplate" text="Bid Rules">
 				<Size>
 					<AbsDimension x="80" y="23" />
@@ -189,11 +190,11 @@
 				</Anchors>
 				<Scripts>
 					<OnClick>
-						--SOTA_OpenConfigurationFrame2();
+						SOTA_OpenBidRulesConfig();
 					</OnClick>
 				</Scripts>
 			</Button>
-			<!-- Line 2: Config 6 button -->
+			<!-- Line 2, button 3: Sync Cfg config button -->
 			<Button name="$parentConfigTabButton6" inherits="UIPanelButtonTemplate" text="Sync Cfg">
 				<Size>
 					<AbsDimension x="80" y="23" />
@@ -205,7 +206,7 @@
 				</Anchors>
 				<Scripts>
 					<OnClick>
-						--SOTA_OpenConfigurationFrame3();
+						SOTA_OpenSyncCfgConfig();
 					</OnClick>
 				</Scripts>
 			</Button>
@@ -235,7 +236,7 @@
 		<Scripts>
 			<OnLoad>
 				this:SetMovable(true)
-				this:SetUserPlaced(true)
+				this:SetUserPlaced(false)
 				this:RegisterForDrag("LeftButton")
 			</OnLoad>
 			<OnDragStart>
@@ -243,6 +244,7 @@
 			</OnDragStart>
 			<OnDragStop>
 				this:StopMovingOrSizing()
+				SOTA_UpdateFramePos(this);
 			</OnDragStop>
 		</Scripts>
 	</Frame>
@@ -330,8 +332,7 @@
 	</Button>
 
 
-
-	<!-- Configuration Frame 1: Bidding options -->
+	<!-- Configuration Frame 1.1: Bidding options -->
 	<!-- Auction Timer, nominal time -->
 	<Frame name="FrameConfigBidding" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
 		<Frames>
@@ -457,9 +458,9 @@
 		</Frames>
 	</Frame>
 	
-	<!-- Configuration Frame 2: Boss DKP options -->
+	<!-- Configuration Frame 1.2: Boss DKP options -->
 	<!-- 20 mans (ZG, AQ20) -->
-	<Frame name="FrameConfigBossDkp" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
+	<Frame name="FrameConfigBossDkp" parent="UIParent" inherits="SOTA_ConfigurationFrameTemplate">
 		<Frames>
 			<Slider name="$parent_20Mans" inherits="SOTA_BossDKPSlider">
 				<Anchors>
@@ -519,9 +520,9 @@
 		</Frames>
 	</Frame>
 	
-	<!-- Configuration Frame 3: Misc. DKP -->
+	<!-- Configuration Frame 1.3: Misc. DKP -->
 	<!-- Public Guild Notes, options: 0, 1 -->
-	<Frame name="FrameConfigMiscDkp" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
+	<Frame name="FrameConfigMiscDkp" parent="UIParent" inherits="SOTA_ConfigurationFrameTemplate">
 		<Frames>
 			<CheckButton name="$parentPublicNotes" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
@@ -657,7 +658,7 @@
 		</Frames>
 	</Frame>
 
-	<!-- Configuration Frame 4: Messages -->
+	<!-- Configuration Frame 2.1: Messages -->
 	<!-- Configurable messages -->
 	<Frame name="FrameConfigMessage" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
 		<Frames>
@@ -770,6 +771,17 @@
 			</Layer>
 		</Layers>
 	</Frame>
+
+	<!-- Configuration Frame 2.2: Bid Rules -->
+	<!-- Configurable Bid Rules -->
+	<Frame name="FrameConfigBidRules" parent="UIParent" inherits="SOTA_ConfigurationFrameTemplate">
+	</Frame>
+
+	<!-- Configuration Frame 2.3: Sync Cfg -->
+	<!-- Synchronize Configuration to other SotA users -->
+	<Frame name="FrameConfigSyncCfg" parent="UIParent" inherits="SOTA_ConfigurationFrameTemplate">
+	</Frame>
+
 
 	<!-- Event Message editor frame -->
 	<Frame name="FrameEventEditor" parent="UIParent" toplevel="true" hidden="true">
@@ -985,5 +997,5 @@
 			</OnDragStop>
 		</Scripts>
 	</Frame>
-
+	
 </Ui>

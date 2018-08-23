@@ -76,6 +76,32 @@ function SOTA_SetConfigurableMessage(event, channel, message)
 	end;
 end;
 
+--[[
+--	Copy the updated frame pos to frame siblings.
+--	Since: 1.2.0
+--]]
+function SOTA_UpdateFramePos(frame)
+	local framename = frame:GetName();
+
+	if(framename ~= "FrameConfigBidding") then
+		FrameConfigBidding:SetAllPoints(frame);
+	end
+	if(framename ~= "FrameConfigBossDkp") then
+		FrameConfigBossDkp:SetAllPoints(frame);
+	end
+	if(framename ~= "FrameConfigMiscDkp") then
+		FrameConfigMiscDkp:SetAllPoints(frame);
+	end
+	if(framename ~= "FrameConfigMessage") then
+		FrameConfigMessage:SetAllPoints(frame);
+	end
+	if(framename ~= "FrameConfigBidRules") then
+		FrameConfigBidRules:SetAllPoints(frame);
+	end
+	if(framename ~= "FrameConfigSyncCfg") then
+		FrameConfigSyncCfg:SetAllPoints(frame);
+	end
+end;
 
 function SOTA_OpenConfigurationUI()
 	ConfigurationDialogOpen = true;
@@ -95,6 +121,8 @@ function SOTA_CloseAllConfig()
 	FrameConfigBossDkp:Hide();
 	FrameConfigMiscDkp:Hide();
 	FrameConfigMessage:Hide();
+	FrameConfigBidRules:Hide();
+	FrameConfigSyncCfg:Hide();
 end;
 
 function SOTA_ToggleConfigurationUI()
@@ -124,6 +152,16 @@ function SOTA_OpenMessageConfig()
 	SOTA_CloseAllConfig();
 	FrameConfigMessage:Show();
 end
+
+function SOTA_OpenBidRulesConfig()
+	SOTA_CloseAllConfig();
+	FrameConfigBidRules:Show();
+end;
+
+function SOTA_OpenSyncCfgConfig()
+	SOTA_CloseAllConfig();
+	FrameConfigSyncCfg:Show();
+end;
 
 function SOTA_OnOptionAuctionTimeChanged(object)
 	SOTA_CONFIG_AuctionTime = tonumber( getglobal(object:GetName()):GetValue() );
