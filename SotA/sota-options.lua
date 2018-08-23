@@ -695,8 +695,12 @@ SOTA_RULETYPE_SUCCESS = "SUCCESS";
 function SOTA_ParseRule(rule)
 	local RuleInfo = { }
 
-	RuleInfo["VALID"] = false;
-	RuleInfo["MESSAGE"] = "";
+	RuleInfo["RULETYPE"]	= '';		-- Current ruletype. Possible values: 'SUCCESS' and 'FAIL'
+	RuleInfo["VALID"]		= false;	-- TRUE if rule has been passed as valid (i.e. have a result)
+	RuleInfo["RESULT"]		= false;	-- Rule result: TRUE (action is to be taken) or FALSE (continue)
+	RuleInfo["MESSAGE"]		= '';		-- Custom message; used when FAIL returns TRUE (message to the user why he cannot bid)
+	RuleInfo["ERROR"]		= '';		-- Error message; used when VALID returns FALSE.
+	
 
 	-- TODO:
 	-- * Remove all spaces in the rule. Not needed if rule is auto-generated.
@@ -718,7 +722,7 @@ function SOTA_ParseRule(rule)
 	local operations = SOTA_StringSplit(ruleoper, '\&');
 
 	--	2.1: Prioritize each operation:
-	--	(not really needed as long we don't support "+" and "-")
+	--	(not needed as long we don't support "+" and "-")
 
 	--	2.2: Validate each operation and substitute values
 	local statementResult = true;
@@ -735,7 +739,7 @@ function SOTA_ParseRule(rule)
 		
 		if not(statementResult) then
 			-- FALSE cannot skip a rule, but it will skip the loop: entire statement is FALSE.
-			if RuleInfo["RULETYPE"] = SOTA_RULETYPE_FAIL then
+			if RuleInfo["RULETYPE"] == SOTA_RULETYPE_FAIL then
 				RuleInfo["VALID"] = true;
 				RuleInfo["RESULT"] = false;
 				localEcho("Rule is INVALID; move to next rule");
