@@ -87,33 +87,65 @@ Roadmap:
 - Bugfix: Offline players can now be removed from raid queue via UI.
 - Bugfix: Whispers from non-SOTA Masters are now finally filtered off!
 1.1.0:
-DONE:
-(Beta2)
-- Bugfix: "endless time" (bidding) doesnt work ("0" stops bidding immediately)
-- Bugfix: Remove non-guildies from queue!
 - Added: Messages can now be sent to R/RW/Y/S/Guild/Custom
 - Added: /decaytest - check a DECAY operation will work.
-(Beta3)
 - Added: "!pass" to allow players to pass (last) bid.
-- Refactored units and forms (finally!)
-(Beta4)
 - Added "Deja Vu" rules
-- Fixed bidding bug when going all out below minimum
-(RC1)
 - Added: UI for DKP history plus "/sota resethistory" to clear the local log.
 - Update: World dragon texts updated.
-(RC2)
+- Refactored units and forms (finally!)
+- Bugfix: "endless time" (bidding) doesnt work ("0" stops bidding immediately)
+- Bugfix: Remove non-guildies from queue!
+- Bugfix: Fixed bidding bug when going all out below minimum
 - Bugfix: sharerange did not share the dkp as inteded - fixed.
 - Bugfix: SOTA_RefreshTransactionLog() no longer exists - fixed.
 - Bugfix: shared and ranged dkp appeared multiple times in history - fixed.
-(RC3)
 - Bugfix: Time format wrong in Transaction log - fixed.
 - Bugfix: Debug message removed from Zone checker (Oops :-)
-(Release)
 - Bugfix: Transaction log details are not hidden when changing log view - fixed.
-
+1.2.0:
+DONE:
+- [Feature 1.2.0-1] Added: Configurable raid messages.
+- [Feature 1.2.0-2] Added: Configurable message channels
 TODO:
-- Added: Possible to configure raid messages. (sync system?)
+- [Feature 1.2.0-3] Added: Sync button for Sync common config settings
+- [Feature 1.2.0-4] Added: Rank rule engine (how the fuck do we do this?)
+BUGS:
+- Clicking a Config button resets the current window position
+
+
+[Feature 1.2.0-1] Configurable raid messages:
+- Identify all raid messages
+	"Auction open for %s"
+	"/w %s bid <your bid>"
+	"Minimum bid: %d DKP"
+	"10 seconds left for %s"
+	"/w %s bid <your bid>"
+	"3 seconds left"
+	"2 seconds left"
+	"1 second left"
+- Create UI for all Auction messages:
+
+
+[Feature 1.2.0-2] Configurable message channels
+- Add radio buttons for [Raid], [RW], [Yell], [Say], [Guild] (more?)
+- Remove SOTA_CONFIG_OutputChannel setting (obsolete)
+
+
+[Feature 1.2.0-3] Sync button for Sync common config settings
+- Identify settings to be sync'ed
+- Create UI for sync'ing (show people with SotA in raid + version of Sota + version of Sync)
+- Implement sync'ing, including some kind of version id + name of "owner" (last person to change settings)
+
+
+[Feature 1.2.0-4] Rank rule engine (how the fuck do we do this?)
+- Design a rule engine.
+- Create UI to fit the design.
+- Implement rule engine
+
+
+
+Backlog:
 - Added: Add dkp outside raid and do "bulk commits" (for guild donations)
 - Bugfix: "you are not in the guild" bug when joining queue (often straight after logon).
 	* I might not be able to do anything about this, since the API is providing wrong info!

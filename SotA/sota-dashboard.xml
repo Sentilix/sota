@@ -105,7 +105,7 @@
 						<PushedTexture file="Interface\ICONS\INV_Misc_Gear_02.blp" />
 						<Scripts>
 							<OnClick>
-								SOTA_DisplayConfigurationScreen();
+								SOTA_OpenConfigurationUI();
 							</OnClick>
 							<OnEnter>
 								SOTA_ShowDashboardToolTip(this, "Open Configuration screen");

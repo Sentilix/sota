@@ -19,11 +19,11 @@ SOTA_CHAT_END					= "|r"
 SOTA_COLOUR_INTRO				= "|c80F0F0F0"
 SOTA_COLOUR_CHAT				= "|c8040A0F8"
 
-local PARTY_CHANNEL				= "PARTY"
+local WARN_CHANNEL				= "RAID_WARNING"
 local RAID_CHANNEL				= "RAID"
+local PARTY_CHANNEL				= "PARTY"
 local YELL_CHANNEL				= "YELL"
 local SAY_CHANNEL				= "SAY"
-local WARN_CHANNEL				= "RAID_WARNING"
 local GUILD_CHANNEL				= "GUILD"
 local WHISPER_CHANNEL			= "WHISPER"
 
@@ -77,6 +77,28 @@ SOTA_CLASS_COLORS = {
 }
 
 
+SOTA_MSG_OnAnnounceBid		= "OnAnnounceBid";
+SOTA_MSG_OnAnnounceMinBid	= "OnAnnounceMinBid";	-- Deprecated; add "\n" to break lines!
+SOTA_MSG_On10SecondsLeft	= "On10SecondsLeft";
+SOTA_MSG_On9SecondsLeft		= "On9SecondsLeft";
+SOTA_MSG_On8SecondsLeft		= "On8SecondsLeft";
+SOTA_MSG_On7SecondsLeft		= "On7SecondsLeft";
+SOTA_MSG_On6SecondsLeft		= "On6SecondsLeft";
+SOTA_MSG_On5SecondsLeft		= "On5SecondsLeft";
+SOTA_MSG_On4SecondsLeft		= "On4SecondsLeft";
+SOTA_MSG_On3SecondsLeft		= "On3SecondsLeft";
+SOTA_MSG_On2SecondsLeft		= "On2SecondsLeft";
+SOTA_MSG_On1SecondLeft		= "On1SecondLeft";
+SOTA_MSG_OnMainspecBid		= "OnMainspecBid";
+SOTA_MSG_OnOffspecBid		= "OnOffspecBid";
+SOTA_MSG_OnMainspecMaxBid	= "OnMainspecMaxBid";
+SOTA_MSG_OnOffspecMaxBid	= "OnOffspecMaxBid";
+SOTA_MSG_OnOpen				= "OnAuctionOpened";
+SOTA_MSG_OnComplete			= "OnComplete";
+SOTA_MSG_OnPause			= "OnPause";
+SOTA_MSG_OnResume			= "OnResume";
+SOTA_MSG_OnClose			= "OnEnd";
+SOTA_MSG_OnCancel			= "OnCancel";
 
 
 --	Settings (persisted)
@@ -89,6 +111,7 @@ SOTA_CONFIG_EnableOnlineCheck	= 1;	-- Enable online check when doing raid queue 
 SOTA_CONFIG_AllowPlayerPass     = 1;	-- 0: No pass, 1: can pass latest bid
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
 SOTA_CONFIG_OutputChannel		= WARN_CHANNEL;
+SOTA_CONFIG_Messages			= { }	-- Contains configurable raid messages (if any)
 	
 
 -- Pane 2:
@@ -127,8 +150,31 @@ function debugEcho(msg)
 	end
 end
 
-function publicEcho(msg)
-	SendChatMessage(string.format("[%s] %s", SOTA_TITLE, msg), SOTA_CONFIG_OutputChannel);
+function publicEcho(msgInfo)
+	if(msgInfo) and (msgInfo[3] ~= "") then
+		local channelName;
+
+		if msgInfo[2] == 0 then
+			-- Message has been disabled!
+			return;
+		elseif msgInfo[2] == 1 then
+			channelName = WARN_CHANNEL;
+		elseif msgInfo[2] == 2 then
+			channelName = RAID_CHANNEL;
+		elseif msgInfo[2] == 3 then
+			channelName = GUILD_CHANNEL;
+		elseif msgInfo[2] == 4 then
+			channelName = YELL_CHANNEL;
+		elseif msgInfo[2] == 5 then
+			channelName = SAY_CHANNEL;
+		else
+			-- Unknown channel
+			localEcho("Unknown channel: ".. msgInfo[2]..", msg: "..msgInfo[3]);
+			return;
+		end;
+
+		SendChatMessage(string.format("[%s] %s", SOTA_TITLE, msgInfo[3]), channelName);
+	end;
 end;
 
 function localEcho(msg)
@@ -154,7 +200,6 @@ function SOTA_whisper(receiver, msg)
 		SendChatMessage(msg, WHISPER_CHANNEL, nil, receiver);
 	end
 end
-
 
 
 --[[
@@ -1707,6 +1752,13 @@ function SOTA_GetMinimumBid(bidtype)
 	end
 
 	return floor(minimumBid);
-end
+end;
 
 
+function SOTA_GetConfigurableTextMessages()
+	return SOTA_CONFIG_Messages;
+end;
+
+function SOTA_SetConfigurableTextMessages(messages)
+	SOTA_CONFIG_Messages = messages;
+end;

@@ -112,23 +112,23 @@
 					</OnClick>
 				</Scripts>
 			</Button>
-			<!-- Config 1 button -->
+			<!-- Line 1: Config 1 button -->
 			<Button name="$parentConfigTabButton1" inherits="UIPanelButtonTemplate" text="Bidding">
 				<Size>
-					<AbsDimension x="80" y="23" />
+					<AbsDimension x="80" y="20" />
 				</Size>
 				<Anchors>
 					<Anchor point="TOPLEFT">
-						<Offset x="80" y="-40" />
+						<Offset x="80" y="-35" />
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnClick>
-						SOTA_OpenConfigurationFrame1();
+						SOTA_OpenBiddingConfig();
 					</OnClick>
 				</Scripts>
 			</Button>
-			<!-- Config 2 button -->
+			<!-- Line 1: Config 2 button -->
 			<Button name="$parentConfigTabButton2" inherits="UIPanelButtonTemplate" text="Boss DKP">
 				<Size>
 					<AbsDimension x="80" y="23" />
@@ -140,11 +140,11 @@
 				</Anchors>
 				<Scripts>
 					<OnClick>
-						SOTA_OpenConfigurationFrame2();
+						SOTA_OpenBossDkpConfig();
 					</OnClick>
 				</Scripts>
 			</Button>
-			<!-- Config 3 button -->
+			<!-- Line 1: Config 3 button -->
 			<Button name="$parentConfigTabButton2" inherits="UIPanelButtonTemplate" text="Misc DKP">
 				<Size>
 					<AbsDimension x="80" y="23" />
@@ -156,10 +156,60 @@
 				</Anchors>
 				<Scripts>
 					<OnClick>
-						SOTA_OpenConfigurationFrame3();
+						SOTA_OpenMiscDkpConfig();
 					</OnClick>
 				</Scripts>
 			</Button>
+
+			<!-- Line 2: Config 4 button -->
+			<Button name="$parentConfigTabButton4" inherits="UIPanelButtonTemplate" text="Messages">
+				<Size>
+					<AbsDimension x="80" y="20" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="80" y="-54" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_OpenMessageConfig();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Line 2: Config 5 button -->
+			<Button name="$parentConfigTabButton5" inherits="UIPanelButtonTemplate" text="Bid Rules">
+				<Size>
+					<AbsDimension x="80" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parentConfigTabButton4" relativePoint="LEFT">
+						<Offset x="84" y="0" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						--SOTA_OpenConfigurationFrame2();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Line 2: Config 6 button -->
+			<Button name="$parentConfigTabButton6" inherits="UIPanelButtonTemplate" text="Sync Cfg">
+				<Size>
+					<AbsDimension x="80" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="LEFT" relativeTo="$parentConfigTabButton5" relativePoint="LEFT">
+						<Offset x="84" y="0" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						--SOTA_OpenConfigurationFrame3();
+					</OnClick>
+				</Scripts>
+			</Button>
+
 			<!-- Dummy input field to claim frame focus -->
 			<EditBox name="$parentDummy" letters="1" visible="false">
 				<Size>
@@ -181,6 +231,20 @@
 				</Scripts>
 			</EditBox>
 		</Frames>
+
+		<Scripts>
+			<OnLoad>
+				this:SetMovable(true)
+				this:SetUserPlaced(true)
+				this:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnDragStart>
+				this:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				this:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
 	</Frame>
 
 	<!-- Boss DKP slider (config element for Boss DKP)  -->
@@ -199,33 +263,79 @@
 		</Scripts>
 	</Slider>
 
-	<!-- template for a "dropdown" combo box -->
-	<Frame name="SOTA_DropDownTemplate" inherits="UIDropDownMenuTemplate" hidden="true" virtual="true">
+	<!-- Template for Message list entries -->
+	<Button name="SOTA_TextTemplate" hidden="true" virtual="true">
 		<Size>
-			<AbsDimension x="200" y="32"/>
+			<AbsDimension x="278" y="16"/>
 		</Size>
-		<Anchors>
-			<Anchor point="LEFT">
-				<Offset>
-					<AbsDimension x="4" y="-4"/>
-				</Offset>
-			</Anchor>
-		</Anchors>
+		<Layers>
+			<Layer>
+				<!-- TODO: Insert Channel selector -->
+				<FontString name="$parentEvent" justifyH="LEFT" inherits="GameFontNormal" hidden="true">
+					<Size>
+						<AbsDimension x="0" y="0"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentChannel" justifyH="LEFT" inherits="GameFontNormal" hidden="true">
+					<Size>
+						<AbsDimension x="0" y="0"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentMessage" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="274" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="4" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
 		<Scripts>
+			<OnClick>
+				SOTA_OnEventMessageClick(this)
+				PlaySound("igMainMenuOptionCheckBoxOn")
+			</OnClick>
+			<OnEnter>
+				getglobal(this:GetName().."BG"):SetVertexColor(1, 1, 1, 1)
+			</OnEnter>
+			<OnLeave>
+				getglobal(this:GetName().."BG"):SetVertexColor(0.4, 0.4, 0.4, 0.7)
+			</OnLeave>
 			<OnLoad>
-				SOTA_DropDown_OnLoad(this);
+				this:GetScript("OnLeave")(this)
 			</OnLoad>
 		</Scripts>
-	</Frame>
+		<NormalTexture name="$parentBG">
+			<Color r="0.0" g="0.0" b="0.5" a="0.5"/>
+		</NormalTexture>
+	</Button>
 
 
 
-	<!--	Configuration Frame, tab 1: Bid Settings -->
-	<Frame name="ConfigurationFrame" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
+	<!-- Configuration Frame 1: Bidding options -->
+	<!-- Auction Timer, nominal time -->
+	<Frame name="FrameConfigBidding" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
 		<Frames>
-			<!-- Configuration Frame 1: Auction Timing -->
-			<!-- Auction Timer, nominal time -->
-			<Slider name="ConfigurationFrameOptionAuctionTime" minValue="0" maxValue="60" defaultValue="25" valueStep="1" inherits="OptionsSliderTemplate">
+			<Slider name="$parentAuctionTime" minValue="0" maxValue="60" defaultValue="25" valueStep="1" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="64" y="-124"/>
@@ -245,7 +355,7 @@
 				</Scripts>
 			</Slider>
 			<!-- Auction Extension time -->
-			<Slider name="ConfigurationFrameOptionAuctionExtension" minValue="0" maxValue="20" defaultValue="8" valueStep="1" inherits="OptionsSliderTemplate">
+			<Slider name="$parentAuctionExtension" minValue="0" maxValue="20" defaultValue="8" valueStep="1" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="64" y="-156"/>
@@ -265,7 +375,7 @@
 				</Scripts>
 			</Slider>
 			<!-- Enable MS/OS bidding (MS>OS) ? -->
-			<CheckButton name="ConfigurationFrameOptionMSoverOSPriority" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentMSoverOSPriority" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-198"/>
@@ -281,7 +391,7 @@
 				</Scripts>
 			</CheckButton>
 			<!-- Enable Zone Check for Raid Queue -->
-			<CheckButton name="ConfigurationFrameOptionEnableZonecheck" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentEnableZonecheck" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-224"/>
@@ -297,7 +407,7 @@
 				</Scripts>
 			</CheckButton>
 			<!-- Enable Online Check -->
-			<CheckButton name="ConfigurationFrameOptionEnableOnlinecheck" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentEnableOnlinecheck" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-250"/>
@@ -313,7 +423,7 @@
 				</Scripts>
 			</CheckButton>
 			<!-- Allow players to Pass ? -->
-			<CheckButton name="ConfigurationFrameOptionAllowPlayerPass" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentAllowPlayerPass" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-276"/>
@@ -329,7 +439,7 @@
 				</Scripts>
 			</CheckButton>
 			<!-- Disable Dashboard ? -->
-			<CheckButton name="ConfigurationFrameOptionDisableDashboard" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentDisableDashboard" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-302"/>
@@ -344,40 +454,14 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
-			<!-- Target channel combo box -->
-			<Frame name="ConfigurationFrameOptionChannel">
-				<Size>
-					<AbsDimension x="20" y="250" />
-				</Size>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="32" y="-334" />
-						</Offset>
-					</Anchor>
-				</Anchors>
-				<Layers>
-					<Layer>
-						<!-- Caption -->
-						<FontString name="$parentCaption" justifyH="LEFT" inherits="GameFontNormal">
-							<Size>
-								<AbsDimension x="130" y="20"/>
-							</Size>
-							<Anchors>
-								<Anchor point="TOPLEFT">
-									<Offset>
-										<AbsDimension x="32" y="-2"/>
-									</Offset>
-								</Anchor>
-							</Anchors>
-						</FontString>
-					</Layer>
-				</Layers>
-			</Frame>
-
-			<!-- Configuration Frame 2: Boss DKP -->
-			<!-- 20 mans (ZG, AQ20) -->
-			<Slider name="ConfigurationFrameOption_20Mans" inherits="SOTA_BossDKPSlider">
+		</Frames>
+	</Frame>
+	
+	<!-- Configuration Frame 2: Boss DKP options -->
+	<!-- 20 mans (ZG, AQ20) -->
+	<Frame name="FrameConfigBossDkp" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
+		<Frames>
+			<Slider name="$parent_20Mans" inherits="SOTA_BossDKPSlider">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="28" y="-124"/>
@@ -385,7 +469,7 @@
 				</Anchors>
 			</Slider>
 			<!-- Molten Core -->
-			<Slider name="ConfigurationFrameOption_MoltenCore" inherits="SOTA_BossDKPSlider">
+			<Slider name="$parent_MoltenCore" inherits="SOTA_BossDKPSlider">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="28" y="-156"/>
@@ -393,7 +477,7 @@
 				</Anchors>
 			</Slider>
 			<!-- Onyxia -->
-			<Slider name="ConfigurationFrameOption_Onyxia" inherits="SOTA_BossDKPSlider">
+			<Slider name="$parent_Onyxia" inherits="SOTA_BossDKPSlider">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="28" y="-188"/>
@@ -401,7 +485,7 @@
 				</Anchors>
 			</Slider>
 			<!-- Blackwing Lair -->
-			<Slider name="ConfigurationFrameOption_BlackwingLair" inherits="SOTA_BossDKPSlider">
+			<Slider name="$parent_BlackwingLair" inherits="SOTA_BossDKPSlider">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="28" y="-220"/>
@@ -409,7 +493,7 @@
 				</Anchors>
 			</Slider>
 			<!-- AQ40 -->
-			<Slider name="ConfigurationFrameOption_AQ40" inherits="SOTA_BossDKPSlider">
+			<Slider name="$parent_AQ40" inherits="SOTA_BossDKPSlider">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="28" y="-252"/>
@@ -417,7 +501,7 @@
 				</Anchors>
 			</Slider>
 			<!-- Naxxramas -->
-			<Slider name="ConfigurationFrameOption_Naxxramas" inherits="SOTA_BossDKPSlider">
+			<Slider name="$parent_Naxxramas" inherits="SOTA_BossDKPSlider">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="28" y="-284"/>
@@ -425,16 +509,21 @@
 				</Anchors>
 			</Slider>
 			<!-- World Bosses -->
-			<Slider name="ConfigurationFrameOption_WorldBosses" inherits="SOTA_BossDKPSlider">
+			<Slider name="$parent_WorldBosses" inherits="SOTA_BossDKPSlider">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="28" y="-316"/>
 					</Anchor>
 				</Anchors>
 			</Slider>
-			<!-- Configuration Frame 3: Misc. DKP -->
-			<!-- Public Guild Notes, options: 0, 1 -->
-			<CheckButton name="ConfigurationFrameOptionPublicNotes" inherits="OptionsCheckButtonTemplate">
+		</Frames>
+	</Frame>
+	
+	<!-- Configuration Frame 3: Misc. DKP -->
+	<!-- Public Guild Notes, options: 0, 1 -->
+	<Frame name="FrameConfigMiscDkp" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
+		<Frames>
+			<CheckButton name="$parentPublicNotes" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-110"/>
@@ -450,7 +539,7 @@
 				</Scripts>
 			</CheckButton>
 			<!-- Minimum Mid Strategy, options: 0, 1, 2, 3 -->
-			<CheckButton name="ConfigurationFrameOptionMinBidStrategy0" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentMinBidStrategy0" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-154"/>
@@ -465,7 +554,7 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
-			<CheckButton name="ConfigurationFrameOptionMinBidStrategy1" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentMinBidStrategy1" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-176"/>
@@ -480,7 +569,7 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
-			<CheckButton name="ConfigurationFrameOptionMinBidStrategy2" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentMinBidStrategy2" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-198"/>
@@ -495,7 +584,7 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
-			<CheckButton name="ConfigurationFrameOptionMinBidStrategy3" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentMinBidStrategy3" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-220"/>
@@ -510,7 +599,7 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
-			<CheckButton name="ConfigurationFrameOptionMinBidStrategy4" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parentMinBidStrategy4" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="32" y="-242"/>
@@ -526,7 +615,7 @@
 				</Scripts>
 			</CheckButton>
 			<!-- DKP String Length, options: 0-8 -->
-			<Slider name="ConfigurationFrameOptionDKPStringLength" minValue="0" maxValue="8" defaultValue="5" valueStep="1" inherits="OptionsSliderTemplate">
+			<Slider name="$parentDKPStringLength" minValue="0" maxValue="8" defaultValue="5" valueStep="1" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="64" y="-292"/>
@@ -546,7 +635,7 @@
 				</Scripts>
 			</Slider>
 			<!-- Minimum DKP Penalty, options: 0 - 500, step 10 -->
-			<Slider name="ConfigurationFrameOptionMinimumDKPPenalty" minValue="0" maxValue="500" defaultValue="50" valueStep="10" inherits="OptionsSliderTemplate">
+			<Slider name="$parentMinimumDKPPenalty" minValue="0" maxValue="500" defaultValue="50" valueStep="10" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset x="64" y="-336"/>
@@ -566,7 +655,322 @@
 				</Scripts>
 			</Slider>
 		</Frames>
-		
+	</Frame>
+
+	<!-- Configuration Frame 4: Messages -->
+	<!-- Configurable messages -->
+	<Frame name="FrameConfigMessage" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
+		<Frames>
+
+			<!-- Message list frame -->
+			<ScrollFrame name="$parentTableList" inherits="FauxScrollFrameTemplate">
+				<Size>
+					<AbsDimension x="286" y="250"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="26" y="-80"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+				</Backdrop>
+				<Scripts>
+					<OnVerticalScroll>
+						FauxScrollFrame_OnVerticalScroll(20, SOTA_UpdateTextList);
+					</OnVerticalScroll>
+					<OnShow>
+						SOTA_UpdateTextList()
+					</OnShow>
+				</Scripts>
+			</ScrollFrame>
+		</Frames>
+		<!-- Textual help -->
+		<Layers>
+			<Layer>
+				<FontString name="$parentExplanation1" justifyH="LEFT" inherits="GameFontNormal" text="$i - Item name">
+					<Size>
+						<AbsDimension x="130" y="20"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="36" y="-334"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentExplanation2" justifyH="LEFT" inherits="GameFontNormal" text="$b - Bidder name">
+					<Size>
+						<AbsDimension x="130" y="20"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="200" y="-334"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentExplanation3" justifyH="LEFT" inherits="GameFontNormal" text="$d - DKP value">
+					<Size>
+						<AbsDimension x="130" y="20"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="36" y="-354"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentExplanation4" justifyH="LEFT" inherits="GameFontNormal" text="$r - Bidder rank">
+					<Size>
+						<AbsDimension x="130" y="20"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="200" y="-354"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentExplanation5" justifyH="LEFT" inherits="GameFontNormal" text="$m - Minimum DKP">
+					<Size>
+						<AbsDimension x="130" y="20"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="36" y="-374"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentExplanation6" justifyH="LEFT" inherits="GameFontNormal" text="$s - SotA Master">
+					<Size>
+						<AbsDimension x="130" y="20"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="200" y="-374"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<!-- Event Message editor frame -->
+	<Frame name="FrameEventEditor" parent="UIParent" toplevel="true" hidden="true">
+		<Size>
+			<AbsDimension x="400" y="240" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset x="0" y="0" />
+			</Anchor>
+		</Anchors>
+		<Backdrop edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11" />
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32" />
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32" />
+			</EdgeSize>
+		</Backdrop>
+		<Frames>
+			<!-- Message input field -->
+			<EditBox name="$parentMessage" letters="120">
+				<Size>
+					<AbsDimension x="336" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-28"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEnterPressed")
+						this:RegisterEvent("OnEscapePressed")
+					</OnLoad>
+					<OnEnterPressed>
+						--Thaliz_SaveMessageButton_OnClick()
+					</OnEnterPressed>
+					<OnEscapePressed>
+						SOTA_OnEventEditorClose();
+					</OnEscapePressed>
+				</Scripts>
+			</EditBox>
+			<!-- OK button -->
+			<Button name="OkButton" inherits="UIPanelButtonTemplate" text="OK">
+				<Size>
+					<AbsDimension x="100" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="100" y="-200" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_OnEventEditorSave();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<!-- Cancel button -->
+			<Button name="CancelButton" inherits="UIPanelButtonTemplate" text="Cancel">
+				<Size>
+					<AbsDimension x="100" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="200" y="-200" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_OnEventEditorClose();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<CheckButton name="$parentCheckbuttonRW" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-64"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Raid Warning (/RW)")
+					</OnLoad>
+					<OnClick>
+						SOTA_OnEventCheckboxClick(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parentCheckbuttonRaid" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-88"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Raid Chat (/R)")
+					</OnLoad>
+					<OnClick>
+						SOTA_OnEventCheckboxClick(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parentCheckbuttonGuild" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-112"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Guild Chat (/G)")
+					</OnLoad>
+					<OnClick>
+						SOTA_OnEventCheckboxClick(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parentCheckbuttonYell" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-136"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Yell (/Y)")
+					</OnLoad>
+					<OnClick>
+						SOTA_OnEventCheckboxClick(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+			<CheckButton name="$parentCheckbuttonSay" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-160"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Say (/S)")
+					</OnLoad>
+					<OnClick>
+						SOTA_OnEventCheckboxClick(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
+		</Frames>
+		<Layers>
+			<Layer level="BORDER">
+				<!-- Message EditBox border -->
+				<Texture name="$parentTextureLeft" file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="20" y="82"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.125" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentTextureRight" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-16" y="82"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.875" right="1" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentTextureCenter" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="1" y="32" />
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentTextureLeft" relativePoint="RIGHT" />
+						<Anchor point="RIGHT" relativeTo="$parentTextureRight" relativePoint="LEFT" />
+					</Anchors>
+					<TexCoords left="0" right="0.9375" top="0" bottom="1.0" />
+				</Texture>
+			</Layer>
+			<Layer level="BACKGROUND">
+				<Texture setAllPoints="true">
+					<Color r="0.0" g="0.0" b="0.0" a="0.9"/>
+				</Texture>
+			</Layer>
+		</Layers>
 		<Scripts>
 			<OnLoad>
 				this:SetMovable(true)
@@ -581,4 +985,5 @@
 			</OnDragStop>
 		</Scripts>
 	</Frame>
+
 </Ui>

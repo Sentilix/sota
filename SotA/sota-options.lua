@@ -7,25 +7,95 @@
 --	underlying functionality to support changing the options.
 --]]
 
-
+local SOTA_MAX_MESSAGES			= 15
 local ConfigurationDialogOpen	= false;
 
 
 
-function SOTA_DisplayConfigurationScreen()
-	SOTA_OpenConfigurationUI();
-end
+function SOTA_EchoEvent(msgKey, item, dkp, bidder, rank)
+	local msgInfo = SOTA_getConfigurableMessage(msgKey, item, dkp, bidder, rank);
+	publicEcho(msgInfo);			
+end;
+
+
+function SOTA_GetEventText(eventName)
+	local messages = SOTA_GetConfigurableTextMessages();
+
+	for n = 1, table.getn(messages), 1 do
+		if(messages[n][1] == eventName) then
+			return messages[n];
+		end;
+	end
+
+	return nil;
+end;
+
+
+--[[
+--	Get configurable message and fill out placeholders:
+--	Parameters:
+--	%i: Item, %d: DKP, %b: Bidder, %r: Rank
+--	Automatic gathered:
+--	%m: Min DKP, %s: SotA master
+--]]
+function SOTA_getConfigurableMessage(msgKey, item, dkp, bidder, rank)
+
+	local msgInfo = SOTA_GetEventText(msgKey);
+
+	if(not msgInfo) then
+		localEcho("*** Oops, SOTA_CONFIG_Messages[".. msgKey .."] was not found");
+		return nil;
+	end;
+
+	if not(item)	then item = ""; end;
+	if not(dkp)		then dkp = ""; end;
+	if not(bidder)	then bidder = ""; end;
+	if not(rank)	then rank = ""; end;
+
+	local msg = msgInfo[3];
+	msg = string.gsub(msg, "$i", ""..item);
+	msg = string.gsub(msg, "$d", ""..dkp);
+	msg = string.gsub(msg, "$b", ""..bidder);
+	msg = string.gsub(msg, "$r", ""..rank);
+	msg = string.gsub(msg, "$m", ""..SOTA_GetMinimumBid());
+	msg = string.gsub(msg, "$s", UnitName("player"));
+	
+	return { msgInfo[1], msgInfo[2], msg };
+end;
+
+function SOTA_SetConfigurableMessage(event, channel, message)
+	--echo("Saving new message: Event: "..event..", Channel: "..channel..", Message: "..message);
+	local messages = SOTA_GetConfigurableTextMessages();
+
+	for n=1,table.getn(messages),1 do
+		if(messages[n][1] == event) then
+			messages[n] = { event, channel, message };
+			SOTA_SetConfigurableTextMessages(messages);
+			return;
+		end;
+	end;
+end;
+
 
 function SOTA_OpenConfigurationUI()
 	ConfigurationDialogOpen = true;
 	SOTA_RefreshBossDKPValues();
-	SOTA_OpenConfigurationFrame1()
+
+	SOTA_OpenBiddingConfig();
 end
 
 function SOTA_CloseConfigurationUI()
-	ConfigurationFrame:Hide();
+	SOTA_CloseAllConfig();
+
 	ConfigurationDialogOpen = false;
 end
+
+function SOTA_CloseAllConfig()
+	FrameConfigBidding:Hide();
+	FrameConfigBossDkp:Hide();
+	FrameConfigMiscDkp:Hide();
+	FrameConfigMessage:Hide();
+end;
 
 function SOTA_ToggleConfigurationUI()
 	if ConfigurationDialogOpen then
@@ -35,76 +105,24 @@ function SOTA_ToggleConfigurationUI()
 	end;
 end;
 
-function SOTA_CloseConfigurationElements(headline)
-	-- ConfigurationFrame1:
-	ConfigurationFrameOptionAuctionTime:Hide();
-	ConfigurationFrameOptionAuctionExtension:Hide();
-	ConfigurationFrameOptionMSoverOSPriority:Hide();
-	ConfigurationFrameOptionEnableZonecheck:Hide();
-	ConfigurationFrameOptionEnableOnlinecheck:Hide();
-	ConfigurationFrameOptionAllowPlayerPass:Hide();
-	ConfigurationFrameOptionDisableDashboard:Hide();
-	ConfigurationFrameOptionChannel:Hide();
-	-- ConfigurationFrame2:
-	ConfigurationFrameOption_20Mans:Hide();
-	ConfigurationFrameOption_MoltenCore:Hide();
-	ConfigurationFrameOption_Onyxia:Hide();
-	ConfigurationFrameOption_BlackwingLair:Hide();
-	ConfigurationFrameOption_AQ40:Hide();
-	ConfigurationFrameOption_Naxxramas:Hide();
-	ConfigurationFrameOption_WorldBosses:Hide();
-	-- ConfigurationFrame3:
-	ConfigurationFrameOptionPublicNotes:Hide();
-	ConfigurationFrameOptionMinBidStrategy0:Hide();
-	ConfigurationFrameOptionMinBidStrategy1:Hide();
-	ConfigurationFrameOptionMinBidStrategy2:Hide();
-	ConfigurationFrameOptionMinBidStrategy3:Hide();
-	ConfigurationFrameOptionMinBidStrategy4:Hide();
-	ConfigurationFrameOptionDKPStringLength:Hide();
-	ConfigurationFrameOptionMinimumDKPPenalty:Hide();
-	
-	ConfigurationFrameTopText:SetText(headline);
+function SOTA_OpenBiddingConfig()
+	SOTA_CloseAllConfig();
+	FrameConfigBidding:Show();
 end
 
-
-function SOTA_OpenConfigurationFrame1()
-	SOTA_CloseConfigurationElements("Auction Timers");
-	-- ConfigurationFrame1:
-	ConfigurationFrameOptionAuctionTime:Show();
-	ConfigurationFrameOptionAuctionExtension:Show();
-	ConfigurationFrameOptionMSoverOSPriority:Show();
-	ConfigurationFrameOptionEnableZonecheck:Show();
-	ConfigurationFrameOptionEnableOnlinecheck:Show();
-	ConfigurationFrameOptionAllowPlayerPass:Show();
-	ConfigurationFrameOptionDisableDashboard:Show();
-	ConfigurationFrameOptionChannel:Show();
-	
-	ConfigurationFrame:Show();	
+function SOTA_OpenBossDkpConfig()
+	SOTA_CloseAllConfig();
+	FrameConfigBossDkp:Show();
 end
 
-function SOTA_OpenConfigurationFrame2()
-	SOTA_CloseConfigurationElements("Shared DKP per Boss Kill");
-	-- ConfigurationFrame2:
-	ConfigurationFrameOption_20Mans:Show();
-	ConfigurationFrameOption_MoltenCore:Show();
-	ConfigurationFrameOption_Onyxia:Show();
-	ConfigurationFrameOption_BlackwingLair:Show();
-	ConfigurationFrameOption_AQ40:Show();	
-	ConfigurationFrameOption_Naxxramas:Show();
-	ConfigurationFrameOption_WorldBosses:Show();
+function SOTA_OpenMiscDkpConfig()
+	SOTA_CloseAllConfig();
+	FrameConfigMiscDkp:Show();
 end
 
-function SOTA_OpenConfigurationFrame3()
-	SOTA_CloseConfigurationElements("Misc. DKP Settings");
-	-- ConfigurationFrame3:
-	ConfigurationFrameOptionPublicNotes:Show();
-	ConfigurationFrameOptionMinBidStrategy0:Show();
-	ConfigurationFrameOptionMinBidStrategy1:Show();
-	ConfigurationFrameOptionMinBidStrategy2:Show();
-	ConfigurationFrameOptionMinBidStrategy3:Show();
-	ConfigurationFrameOptionMinBidStrategy4:Show();
-	ConfigurationFrameOptionDKPStringLength:Show();
-	ConfigurationFrameOptionMinimumDKPPenalty:Show();
+function SOTA_OpenMessageConfig()
+	SOTA_CloseAllConfig();
+	FrameConfigMessage:Show();
 end
 
 function SOTA_OnOptionAuctionTimeChanged(object)
@@ -152,13 +170,13 @@ function SOTA_OnOptionMinimumDKPPenaltyChanged(object)
 end
 
 function SOTA_RefreshBossDKPValues()
-	getglobal("ConfigurationFrameOption_20Mans"):SetValue(SOTA_GetBossDKPValue("20Mans"));
-	getglobal("ConfigurationFrameOption_MoltenCore"):SetValue(SOTA_GetBossDKPValue("MoltenCore"));
-	getglobal("ConfigurationFrameOption_Onyxia"):SetValue(SOTA_GetBossDKPValue("Onyxia"));
-	getglobal("ConfigurationFrameOption_BlackwingLair"):SetValue(SOTA_GetBossDKPValue("BlackwingLair"));
-	getglobal("ConfigurationFrameOption_AQ40"):SetValue(SOTA_GetBossDKPValue("AQ40"));
-	getglobal("ConfigurationFrameOption_Naxxramas"):SetValue(SOTA_GetBossDKPValue("Naxxramas"));
-	getglobal("ConfigurationFrameOption_WorldBosses"):SetValue(SOTA_GetBossDKPValue("WorldBosses"));
+	getglobal("FrameConfigBossDkp_20Mans"):SetValue(SOTA_GetBossDKPValue("20Mans"));
+	getglobal("FrameConfigBossDkp_MoltenCore"):SetValue(SOTA_GetBossDKPValue("MoltenCore"));
+	getglobal("FrameConfigBossDkp_Onyxia"):SetValue(SOTA_GetBossDKPValue("Onyxia"));
+	getglobal("FrameConfigBossDkp_BlackwingLair"):SetValue(SOTA_GetBossDKPValue("BlackwingLair"));
+	getglobal("FrameConfigBossDkp_AQ40"):SetValue(SOTA_GetBossDKPValue("AQ40"));
+	getglobal("FrameConfigBossDkp_Naxxramas"):SetValue(SOTA_GetBossDKPValue("Naxxramas"));
+	getglobal("FrameConfigBossDkp_WorldBosses"):SetValue(SOTA_GetBossDKPValue("WorldBosses"));
 end
 
 function SOTA_OnOptionBossDKPChanged(object)
@@ -166,96 +184,31 @@ function SOTA_OnOptionBossDKPChanged(object)
 	local value = tonumber( getglobal(object:GetName()):GetValue() );
 	local valueString = "";
 	
-	if slider == "ConfigurationFrameOption_20Mans" then
+	if slider == "FrameConfigBossDkp_20Mans" then
 		SOTA_SetBossDKPValue("20Mans", value);
 		valueString = string.format("20 mans (ZG, AQ20): %d DKP", value);
-	elseif slider == "ConfigurationFrameOption_MoltenCore" then
+	elseif slider == "FrameConfigBossDkp_MoltenCore" then
 		SOTA_SetBossDKPValue("Molten Core", value);
 		valueString = string.format("Molten Core: %d DKP", value);
-	elseif slider == "ConfigurationFrameOption_Onyxia" then
+	elseif slider == "FrameConfigBossDkp_Onyxia" then
 		SOTA_SetBossDKPValue("Onyxia", value);
 		valueString = string.format("Onyxia: %d DKP", value);
-	elseif slider == "ConfigurationFrameOption_BlackwingLair" then
+	elseif slider == "FrameConfigBossDkp_BlackwingLair" then
 		SOTA_SetBossDKPValue("BlackwingLair", value);
 		valueString = string.format("Blackwing Lair: %d DKP", value);
-	elseif slider == "ConfigurationFrameOption_AQ40" then
+	elseif slider == "FrameConfigBossDkp_AQ40" then
 		SOTA_SetBossDKPValue("AQ40", value);
 		valueString = string.format("Temple of Ahn'Qiraj: %d DKP", value);
-	elseif slider == "ConfigurationFrameOption_Naxxramas" then
+	elseif slider == "FrameConfigBossDkp_Naxxramas" then
 		SOTA_SetBossDKPValue("Naxxramas", value);
 		valueString = string.format("Naxxramas: %d DKP", value);
-	elseif slider == "ConfigurationFrameOption_WorldBosses" then
+	elseif slider == "FrameConfigBossDkp_WorldBosses" then
 		SOTA_SetBossDKPValue("WorldBosses", value);
 		valueString = string.format("World Bosses: %d DKP", value);
 	end
 
 	getglobal(slider.."Text"):SetText(valueString);
 end
-
-function SOTA_DropDown_OnLoad(object)
-	local msg = object:GetName();
-	local msgID = string.sub(msg, string.len(msg), string.len(msg));
-	 
-	UIDropDownMenu_Initialize(this, function() SOTA_InitializeDropDown(tonumber(msgID)) end );
-end
-
-function SOTA_InitChannelOptionCombobox()
-	local plrEntry = CreateFrame("Frame", "$parentCombobox", ConfigurationFrameOptionChannel, "SOTA_DropdownTemplate");
-	plrEntry:SetID(1);
-	plrEntry:SetPoint("TOPLEFT", 128, 0);
-	
-	local plrFrame = getglobal("ConfigurationFrameOptionChannelCombobox");
-	UIDropDownMenu_SetWidth(128, plrFrame);
-	plrFrame:Show();	
-	
-	SOTA_RefreshDropDownBoxes();
-end;
-
-function SOTA_OnDropDownClick(info)	
-	SOTA_CONFIG_OutputChannel = info.channelId;
-	localEcho(string.format("Output channel changed to %s.", info.text));
-	
-	SOTA_RefreshDropDownBoxes();	
-end;
-
-function SOTA_InitializeDropDown(msgID)
-	local dropdown, info;
-	
-	if ( UIDROPDOWNMENU_OPEN_MENU ) then
-		dropdown = getglobal(UIDROPDOWNMENU_OPEN_MENU);
-	else
-		dropdown = this;
-	end
-	
-	local playername;
-	for n=1, table.getn(SOTA_CHANNELS), 1 do	-- { Channel name, Channel Identifier }	
-		local info = { };
-		info.msgID = msgID;
-		info.text = SOTA_CHANNELS[n][1];
-		info.channelId = SOTA_CHANNELS[n][2];
-		info.checked = (SOTA_CONFIG_OutputChannel == SOTA_CHANNELS[n][2])
-		info.func = function() SOTA_OnDropDownClick(info) end;
-		UIDropDownMenu_AddButton(info);
-	end
-end
-
-function SOTA_RefreshDropDownBoxes()	
-	local channelName = SOTA_CHANNELS[1][1];
-	
-	for n=1, table.getn(SOTA_CHANNELS), 1 do
-		if (SOTA_CHANNELS[n][2] == SOTA_CONFIG_OutputChannel) then
-			channelName = SOTA_CHANNELS[n][1];
-			break;
-		end;
-	end;
-
-	local dropdown = getglobal("ConfigurationFrameOptionChannelCombobox");	
-	UIDropDownMenu_SetSelectedName(dropdown, channelName);
-	
-	local dropdown = getglobal("ConfigurationFrameOptionChannelCaption");
-	dropdown:SetText("Output channel");	
-end
-
 
 function SOTA_InitializeConfigSettings()
     if not SOTA_CONFIG_UseGuildNotes then
@@ -295,31 +248,89 @@ function SOTA_InitializeConfigSettings()
 	end
 
 	
-	getglobal("ConfigurationFrameOptionMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
-	getglobal("ConfigurationFrameOptionEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZoneCheck);
-	getglobal("ConfigurationFrameOptionEnableOnlinecheck"):SetChecked(SOTA_CONFIG_EnableOnlineCheck);
-	getglobal("ConfigurationFrameOptionAllowPlayerPass"):SetChecked(SOTA_CONFIG_AllowPlayerPass);
-	getglobal("ConfigurationFrameOptionDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
-	SOTA_RefreshDropDownBoxes();
+	getglobal("FrameConfigBiddingMSoverOSPriority"):SetChecked(SOTA_CONFIG_EnableOSBidding);
+	getglobal("FrameConfigBiddingEnableZonecheck"):SetChecked(SOTA_CONFIG_EnableZoneCheck);
+	getglobal("FrameConfigBiddingEnableOnlinecheck"):SetChecked(SOTA_CONFIG_EnableOnlineCheck);
+	getglobal("FrameConfigBiddingAllowPlayerPass"):SetChecked(SOTA_CONFIG_AllowPlayerPass);
+	getglobal("FrameConfigBiddingDisableDashboard"):SetChecked(SOTA_CONFIG_DisableDashboard);
 
 	if SOTA_CONFIG_UseGuildNotes == 1 then
-		getglobal("ConfigurationFrameOptionPublicNotes"):SetChecked(1)
+		getglobal("FrameConfigMiscDkpPublicNotes"):SetChecked(1)
 	end
 
-	getglobal("ConfigurationFrameOptionMinBidStrategy".. SOTA_CONFIG_MinimumBidStrategy):SetChecked(1)
-	getglobal("ConfigurationFrameOptionDKPStringLength"):SetValue(SOTA_CONFIG_DKPStringLength);
-	getglobal("ConfigurationFrameOptionMinimumDKPPenalty"):SetValue(SOTA_CONFIG_MinimumDKPPenalty);
-	getglobal("ConfigurationFrameOptionAuctionTime"):SetValue(SOTA_CONFIG_AuctionTime);
-	getglobal("ConfigurationFrameOptionAuctionExtension"):SetValue(SOTA_CONFIG_AuctionExtension);
+	getglobal("FrameConfigMiscDkpMinBidStrategy".. SOTA_CONFIG_MinimumBidStrategy):SetChecked(1)
+	getglobal("FrameConfigMiscDkpDKPStringLength"):SetValue(SOTA_CONFIG_DKPStringLength);
+	getglobal("FrameConfigMiscDkpMinimumDKPPenalty"):SetValue(SOTA_CONFIG_MinimumDKPPenalty);
+	getglobal("FrameConfigBiddingAuctionTime"):SetValue(SOTA_CONFIG_AuctionTime);
+	getglobal("FrameConfigBiddingAuctionExtension"):SetValue(SOTA_CONFIG_AuctionExtension);
 	
 	SOTA_RefreshBossDKPValues();
+
+	SOTA_VerifyEventMessages();
 end
+
+
+function SOTA_VerifyEventMessages()
+
+	-- Syntax: [index] = { EVENT_NAME, CHANNEL, TEXT }
+	-- Channel value: 0: Off, 1: RW, 2: Raid, 3: Guild, 4: Yell, 5: Say
+	local defaultMessages = { 
+		{ SOTA_MSG_OnOpen			, 1, "Auction open for $i" },
+		{ SOTA_MSG_OnAnnounceBid	, 2, "/w $s bid <your bid>" },
+		{ SOTA_MSG_OnAnnounceMinBid	, 2, "Minimum bid: $m DKP" },
+		{ SOTA_MSG_On10SecondsLeft	, 2, "10 seconds left for $i" },
+		{ SOTA_MSG_On9SecondsLeft	, 2, "9 seconds left" },
+		{ SOTA_MSG_On8SecondsLeft	, 0, "8 seconds left" },
+		{ SOTA_MSG_On7SecondsLeft	, 0, "7 seconds left" },
+		{ SOTA_MSG_On6SecondsLeft	, 0, "6 seconds left" },
+		{ SOTA_MSG_On5SecondsLeft	, 0, "5 seconds left" },
+		{ SOTA_MSG_On4SecondsLeft	, 0, "4 seconds left" },
+		{ SOTA_MSG_On3SecondsLeft	, 2, "3 seconds left" },
+		{ SOTA_MSG_On2SecondsLeft	, 2, "2 seconds left" },
+		{ SOTA_MSG_On1SecondLeft	, 2, "1 second left" },
+		{ SOTA_MSG_OnMainspecBid	, 1, "$b ($r) is bidding $d DKP for $i" },
+		{ SOTA_MSG_OnOffspecBid		, 1, "$b is bidding $d Off-spec for $i" },
+		{ SOTA_MSG_OnMainspecMaxBid	, 1, "$b ($r) went all in ($d DKP) for $i" },
+		{ SOTA_MSG_OnOffspecMaxBid	, 1, "$b went all in ($d) Off-spec for $i" },
+		{ SOTA_MSG_OnComplete		, 2, "$i sold to $b for $d DKP." },
+		{ SOTA_MSG_OnPause			, 2, "Auction has been Paused" },
+		{ SOTA_MSG_OnResume			, 2, "Auction has been Resumed" },
+		{ SOTA_MSG_OnClose			, 1, "Auction for $i is over" },
+		{ SOTA_MSG_OnCancel			, 1, "Auction was Cancelled" }
+	}
+
+	-- Merge default messages into saved messages; in case we added some new event names.
+	local messages = SOTA_GetConfigurableTextMessages();
+	if not messages then
+		messages = { }
+	end;
+
+	for n=1,table.getn(defaultMessages), 1 do
+		local foundMessage = false;
+		for f=1,table.getn(messages), 1 do
+			if(messages[f][1] == defaultMessages[n][1]) then
+				foundMessage = true;
+				echo("Found!");
+				break;
+			end;
+		end;
+
+		if(not foundMessage) then
+			echo("Adding message: ".. defaultMessages[n][1]);
+			messages[table.getn(messages)+1] = defaultMessages[n];
+		end;
+	end
+
+	SOTA_SetConfigurableTextMessages(messages);
+
+
+end;
 
 function SOTA_HandleCheckbox(checkbox)
 	local checkboxname = checkbox:GetName();
 
 	--	Enable MS>OS priority:		
-	if checkboxname == "ConfigurationFrameOptionMSoverOSPriority" then
+	if checkboxname == "FrameConfigBiddingMSoverOSPriority" then
 		if checkbox:GetChecked() then
 			SOTA_CONFIG_EnableOSBidding = 1;
 		else
@@ -329,7 +340,7 @@ function SOTA_HandleCheckbox(checkbox)
 	end
 		
 	--	Enable RQ Zonecheck:		
-	if checkboxname == "ConfigurationFrameOptionEnableZonecheck" then
+	if checkboxname == "FrameConfigBiddingEnableZonecheck" then
 		if checkbox:GetChecked() then
 			SOTA_CONFIG_EnableZoneCheck = 1;
 		else
@@ -339,7 +350,7 @@ function SOTA_HandleCheckbox(checkbox)
 	end
 
 	--	Enable RQ Onlinecheck:		
-	if checkboxname == "ConfigurationFrameOptionEnableOnlinecheck" then
+	if checkboxname == "FrameConfigBiddingEnableOnlinecheck" then
 		if checkbox:GetChecked() then
 			SOTA_CONFIG_EnableOnlineCheck = 1;
 		else
@@ -349,7 +360,7 @@ function SOTA_HandleCheckbox(checkbox)
 	end
 
 	--	Allow Player Pass:
-	if checkboxname == "ConfigurationFrameOptionAllowPlayerPass" then
+	if checkboxname == "FrameConfigBiddingAllowPlayerPass" then
 		if checkbox:GetChecked() then
 			SOTA_CONFIG_AllowPlayerPass = 1;
 		else
@@ -359,7 +370,7 @@ function SOTA_HandleCheckbox(checkbox)
 	end
 
 	--	Disable Dashboard:		
-	if checkboxname == "ConfigurationFrameOptionDisableDashboard" then
+	if checkboxname == "FrameConfigBiddingDisableDashboard" then
 		if checkbox:GetChecked() then
 			SOTA_CONFIG_DisableDashboard = 1;
 			SOTA_CloseDashboard();
@@ -371,7 +382,7 @@ function SOTA_HandleCheckbox(checkbox)
 
 	
 	--	Store DKP in Public Notes:		
-	if checkboxname == "ConfigurationFrameOptionPublicNotes" then
+	if checkboxname == "FrameConfigMiscDkpPublicNotes" then
 		if checkbox:GetChecked() then
 			SOTA_CONFIG_UseGuildNotes = 1;
 		else
@@ -383,37 +394,200 @@ function SOTA_HandleCheckbox(checkbox)
 	if checkbox:GetChecked() then		
 		--	Bid type:
 		--	If checked, then we need to uncheck others in same group:
-		if checkboxname == "ConfigurationFrameOptionMinBidStrategy0" then
-			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy4"):SetChecked(0);
+		if checkboxname == "FrameConfigMiscDkpMinBidStrategy0" then
+			getglobal("FrameConfigMiscDkpMinBidStrategy1"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy2"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy3"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy4"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 0;
-		elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy1" then
-			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy4"):SetChecked(0);
+		elseif checkboxname == "FrameConfigBossDkpMinBidStrategy1" then
+			getglobal("FrameConfigMiscDkpMinBidStrategy0"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy2"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy3"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy4"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 1;
-		elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy2" then
-			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy4"):SetChecked(0);
+		elseif checkboxname == "FrameConfigMiscDkpMinBidStrategy2" then
+			getglobal("FrameConfigMiscDkpMinBidStrategy0"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy1"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy3"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy4"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 2;
-		elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy3" then
-			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy4"):SetChecked(0);
+		elseif checkboxname == "FrameConfigMiscDkpMinBidStrategy3" then
+			getglobal("FrameConfigMiscDkpMinBidStrategy0"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy1"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy2"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy4"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 3;			
-		elseif checkboxname == "ConfigurationFrameOptionMinBidStrategy4" then
-			getglobal("ConfigurationFrameOptionMinBidStrategy0"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy1"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy2"):SetChecked(0);
-			getglobal("ConfigurationFrameOptionMinBidStrategy3"):SetChecked(0);
+		elseif checkboxname == "FrameConfigMiscDkpMinBidStrategy4" then
+			getglobal("FrameConfigMiscDkpMinBidStrategy0"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy1"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy2"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy3"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 4;
 		end
 	end
 end
+
+
+local currentEvent;
+function SOTA_OnEventMessageClick(object)	
+	local event = getglobal(object:GetName().."Event"):GetText();
+	local channel = 1*getglobal(object:GetName().."Channel"):GetText();
+	local message = getglobal(object:GetName().."Message"):GetText();
+
+	currentEvent = event;
+
+	if not message then
+		message = "";
+	end
+
+--	echo("** Event: "..event..", Channel: "..channel..", Message: "..message);
+
+	local frame = getglobal("FrameEventEditor");
+	getglobal(frame:GetName().."Message"):SetText(message);
+
+	getglobal(frame:GetName().."CheckbuttonRW"):SetChecked(0);		
+	getglobal(frame:GetName().."CheckbuttonRaid"):SetChecked(0);		
+	getglobal(frame:GetName().."CheckbuttonGuild"):SetChecked(0);		
+	getglobal(frame:GetName().."CheckbuttonYell"):SetChecked(0);		
+	getglobal(frame:GetName().."CheckbuttonSay"):SetChecked(0);		
+
+	if channel == 1 then
+		getglobal(frame:GetName().."CheckbuttonRW"):SetChecked(1);		
+	elseif channel == 2 then
+		getglobal(frame:GetName().."CheckbuttonRaid"):SetChecked(1);		
+	elseif channel == 3 then
+		getglobal(frame:GetName().."CheckbuttonGuild"):SetChecked(1);		
+	elseif channel == 4 then
+		getglobal(frame:GetName().."CheckbuttonYell"):SetChecked(1);		
+	elseif channel == 5 then
+		getglobal(frame:GetName().."CheckbuttonSay"):SetChecked(1);		
+	end
+	-- Yes, channel can be disabled (0) = nothing is written.
+	
+	FrameEventEditor:Show();
+	FrameEventEditorMessage:SetFocus();
+end
+
+function SOTA_OnEventCheckboxClick(checkbox)
+	local checkboxname = checkbox:GetName();
+	local frame = getglobal("FrameEventEditor");
+
+	if checkboxname == "FrameEventEditorCheckbuttonRW" then
+		if checkbox:GetChecked() then
+			getglobal(frame:GetName().."CheckbuttonRaid"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonGuild"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonYell"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonSay"):SetChecked(0);		
+		end;
+	elseif checkboxname == "FrameEventEditorCheckbuttonRaid" then
+		if checkbox:GetChecked() then
+			getglobal(frame:GetName().."CheckbuttonRW"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonGuild"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonYell"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonSay"):SetChecked(0);		
+		end;
+	elseif checkboxname == "FrameEventEditorCheckbuttonGuild" then
+		if checkbox:GetChecked() then
+			getglobal(frame:GetName().."CheckbuttonRW"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonRaid"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonYell"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonSay"):SetChecked(0);		
+		end;
+	elseif checkboxname == "FrameEventEditorCheckbuttonYell" then
+		if checkbox:GetChecked() then
+			getglobal(frame:GetName().."CheckbuttonRW"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonRaid"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonGuild"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonSay"):SetChecked(0);		
+		end;
+	elseif checkboxname == "FrameEventEditorCheckbuttonSay" then
+		if checkbox:GetChecked() then
+			getglobal(frame:GetName().."CheckbuttonRW"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonRaid"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonGuild"):SetChecked(0);		
+			getglobal(frame:GetName().."CheckbuttonYell"):SetChecked(0);		
+		end;
+	end;
+end;
+
+function SOTA_OnEventEditorSave()
+	local event = currentEvent;
+	local message = FrameEventEditorMessage:GetText();
+	local channel = 0;
+
+	local frame = getglobal("FrameEventEditor");
+	
+	if getglobal(frame:GetName().."CheckbuttonRW"):GetChecked() then
+		channel = 1
+	elseif getglobal(frame:GetName().."CheckbuttonRaid"):GetChecked() then
+		channel = 2
+	elseif getglobal(frame:GetName().."CheckbuttonGuild"):GetChecked() then
+		channel = 3
+	elseif getglobal(frame:GetName().."CheckbuttonYell"):GetChecked() then
+		channel = 4
+	elseif getglobal(frame:GetName().."CheckbuttonSay"):GetChecked() then
+		channel = 5
+	end;
+
+	SOTA_SetConfigurableMessage(event, channel, message);
+
+	SOTA_UpdateTextList();
+
+	FrameEventEditor:Hide();
+end;
+
+function SOTA_OnEventEditorClose()
+	FrameEventEditor:Hide();
+end;
+
+function SOTA_RefreshVisibleTextList(offset)
+	--echo(string.format("Offset=%d", offset));
+	local messages = SOTA_GetConfigurableTextMessages();
+	local msgInfo;
+
+	for n=1, SOTA_MAX_MESSAGES, 1 do
+		msgInfo = messages[n + offset]
+		if not msgInfo then
+			msgInfo = { "", 0, "" }
+		end
+		
+		local event = msgInfo[1];
+		local channel = msgInfo[2];
+		local message = msgInfo[3];
+		
+		--echo(string.format("-> Event=%s, Channel=%d, Text=%s", event, 1*channel, message));
+		
+		local frame = getglobal("FrameConfigMessageTableListEntry"..n);
+		if(not frame) then
+			echo("*** Oops, frame is nil");
+			return;
+		end;
+
+		getglobal(frame:GetName().."Event"):SetText(event);
+		getglobal(frame:GetName().."Channel"):SetText(channel);
+		getglobal(frame:GetName().."Message"):SetText(message);
+		
+		frame:Show();
+	end
+end
+
+function SOTA_UpdateTextList(frame)
+	FauxScrollFrame_Update(FrameConfigMessageTableList, SOTA_MAX_MESSAGES, 10, 20);
+	local offset = FauxScrollFrame_GetOffset(FrameConfigMessageTableList);
+	
+	SOTA_RefreshVisibleTextList(offset);
+end
+
+function SOTA_InitializeTextElements()
+	local entry = CreateFrame("Button", "$parentEntry1", FrameConfigMessageTableList, "SOTA_TextTemplate");
+	entry:SetID(1);
+	entry:SetPoint("TOPLEFT", 4, -4);
+	for n=2, SOTA_MAX_MESSAGES, 1 do
+		local entry = CreateFrame("Button", "$parentEntry"..n, FrameConfigMessageTableList, "SOTA_TextTemplate");
+		entry:SetID(n);
+		entry:SetPoint("TOP", "$parentEntry"..(n-1), "BOTTOM");
+	end
+end
+
 

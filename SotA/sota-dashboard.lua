@@ -160,7 +160,7 @@ function SOTA_HandleSOTACommand(msg)
 	--	Command: config
 	--	Syntax: "config"	
 	if cmd == "cfg" or cmd == "config" then
-		SOTA_DisplayConfigurationScreen();
+		SOTA_OpenConfigurationUI();
 		return;	
 	end
 
@@ -1149,7 +1149,6 @@ function SOTA_InitializeUI()
 	SOTA_AuctionUIInit();
 	SOTA_RaidQueueUIInit()
 	SOTA_TransactionLogUIInit();
-	SOTA_InitChannelOptionCombobox();
 end
 
 
@@ -1207,7 +1206,7 @@ end
 --	There's a message in the Raid channel - investigate that!
 --]]
 function SOTA_HandleRaidChatMessage(event, message, sender)
-	if not message or message == "" or not string.sub(message, 1, 1) == "!" then
+	if (not message) or (message == "") or (string.sub(message, 1, 1) ~= "!") then
 		return;
 	end
 	
@@ -1301,6 +1300,8 @@ function SOTA_OnLoad()
 	if SOTA_IsInRaid(true) then	
 		SOTA_Synchronize();
 	end	
+
+	SOTA_InitializeTextElements();
 end
 
 
