@@ -692,14 +692,22 @@ end;
 SOTA_RULETYPE_FAIL = "FAIL";
 SOTA_RULETYPE_SUCCESS = "SUCCESS";
 
+
+
+--[[
+--	Parse one rule.
+--	Result can be TRUE: rule conditions was meet or FALSE: Pick next rule in chain.
+--]]
 function SOTA_ParseRule(rule)
 	local RuleInfo = { }
-
 	RuleInfo["RULETYPE"]	= '';		-- Current ruletype. Possible values: 'SUCCESS' and 'FAIL'
 	RuleInfo["VALID"]		= false;	-- TRUE if rule has been passed as valid (i.e. have a result)
 	RuleInfo["RESULT"]		= false;	-- Rule result: TRUE (action is to be taken) or FALSE (continue)
 	RuleInfo["MESSAGE"]		= '';		-- Custom message; used when FAIL returns TRUE (message to the user why he cannot bid)
 	RuleInfo["ERROR"]		= '';		-- Error message; used when VALID returns FALSE.
+
+	--	TODO: A rule needs a configurable message text. This is used for RULETYPE=SOTA_RULETYPE_FAIL
+	--	TODO: Fill in token values
 	
 
 	-- TODO:
@@ -738,7 +746,7 @@ function SOTA_ParseRule(rule)
 		statementResult = SOTA_CalculateOperation(v1, operator, v2);
 		
 		if not(statementResult) then
-			-- FALSE cannot skip a rule, but it will skip the loop: entire statement is FALSE.
+			-- Rule is FALSE: Continue with next rule in chain.
 			if RuleInfo["RULETYPE"] == SOTA_RULETYPE_FAIL then
 				RuleInfo["VALID"] = true;
 				RuleInfo["RESULT"] = false;
@@ -749,31 +757,18 @@ function SOTA_ParseRule(rule)
 	end;
 
 	if(statementResult) then
-		-- If entire statement is TRUE, then we are done!
-		if RuleInfo["RULETYPE"] = SOTA_RULETYPE_FAIL then
+		-- If entire statement is TRUE, then conditions was meet.
+		if RuleInfo["RULETYPE"] == SOTA_RULETYPE_FAIL then
 			RuleInfo["MESSAGE"] = "(A custom message for this rule)";
 		end;
 		RuleInfo["VALID"] = true;
 		RuleInfo["RESULT"] = true;
 		localEcho(string.format("Rule is VALID; %s = %s", RuleInfo["RULETYPE"], operations[n]));
-		return RuleInfo;
+	else
+		localEcho("Rule conditions are broken");
 	end;
 
-	-- Undefined result; we need a flag to pick next
-	RuleInfo["VALID"] = false;
-	RuleInfo["RESULT"] = true;
-	localEcho(string.format("Rule is VALID; %s = (All passed)", RuleInfo["RULETYPE"]));
 	return RuleInfo;
-	
-	--[[
-	-- 3. Pick next rule (not part of this)
-	-- 4. End with SUCCESS.
-	-- If enture statement is TRUE, then we are done!
-	RuleInfo["VALID"] = true;
-	RuleInfo["RESULT"] = true;
-	localEcho(string.format("Rule is VALID; %s = (All passed)", RuleInfo["RULETYPE"]));
-	return RuleInfo;
-	--]]
 end;
 
 
