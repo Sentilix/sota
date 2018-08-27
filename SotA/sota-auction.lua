@@ -292,6 +292,27 @@ function SOTA_HandlePlayerBid(sender, message)
 		hiBid = highestBid[2];
 	end;
 
+	local bidderClass = playerInfo[3];
+	local bidderRank  = playerInfo[4];
+	
+	local variables = { }
+	variables['bid'] = dkp;
+	variables['min'] = hiBid;
+	variables['bidrank'] = 6;	--bidderRank converted to number. We don't have that info yet! Lower = better
+	variables['currank'] = 3;	--current rank; Lower = better.
+
+	local ruleInfo = SOTA_ParseRules(variables);
+
+	if(ruleInfo['VALID']) and (ruleInfo['RESULT']) then
+		if(ruleInfo['RULETYPE'] == SOTA_RULETYPE_SUCCESS) then
+			-- Rule is valid; stop parsing more rules.
+			-- TODO: Add parser for a chain of rules; this one does nothing now!
+		else
+			SOTA_whisper(sender, ruleInfo['MESSAGE']);
+			return;
+		end;
+	end;
+
 
 	-- Check user at least did bid more than last bidder:
 	if(dkp > hiBid) then
@@ -317,9 +338,6 @@ function SOTA_HandlePlayerBid(sender, message)
 	if Seconds < SOTA_CONFIG_AuctionExtension then
 		Seconds = SOTA_CONFIG_AuctionExtension;
 	end
-	
-	local bidderClass = playerInfo[3];
-	local bidderRank  = playerInfo[4];
 	
 	if userWentAllIn then
 		if bidtype == 2 then

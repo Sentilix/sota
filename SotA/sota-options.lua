@@ -684,8 +684,10 @@ function SOTA_PerformSampleRuleTest()
 	-- "FAIL = DKP >= 1000 & rank < 5 & RANK < 5 & rank < RANK"
 	-- RANK/rank --> R/R, DKP/dkp --> D/d
 	local rule = "FAIL=D>=1000&r<5&R<5&r<R";
+	local brokenText = "You cannot bid more than 5000 DKP when bidding against a member+ rank.";
+	local ruleset = { rule, brokenText };
 
-	SOTA_ParseRule(rule);
+	SOTA_ParseRule(ruleset);
 end;
 
 
@@ -693,12 +695,34 @@ SOTA_RULETYPE_FAIL = "FAIL";
 SOTA_RULETYPE_SUCCESS = "SUCCESS";
 
 
+--[[
+--	Parse ALL rules
+--]]
+function SOTA_ParseRules(variables)
+
+	local rules = { }
+
+	-- Check rule engine: Is this bid valid according to custom rules?
+--	local rule = "FAIL=DKP>=1000&rank<5&RANK<5&rank<RANK";
+--	local brokenText = "You cannot bid more than 5000 DKP when bidding against a member+ rank.";
+--	local ruleset = { rule, brokenText };
+
+	local rule = "FAIL=dkp>1000";
+	local brokenText = "You cannot bid more than 1000 DKP while testing!";
+	local ruleset = { rule, brokenText };
+
+	rules[1] = { { rule, brokenText } }
+
+	return SOTA_ParseRule(variables, ruleset);
+
+end;
+
 
 --[[
 --	Parse one rule.
 --	Result can be TRUE: rule conditions was meet or FALSE: Pick next rule in chain.
 --]]
-function SOTA_ParseRule(rule)
+function SOTA_ParseRule(variables, ruleset)
 	local RuleInfo = { }
 	RuleInfo["RULETYPE"]	= '';		-- Current ruletype. Possible values: 'SUCCESS' and 'FAIL'
 	RuleInfo["VALID"]		= false;	-- TRUE if rule has been passed as valid (i.e. have a result)
@@ -708,13 +732,14 @@ function SOTA_ParseRule(rule)
 
 	--	TODO: A rule needs a configurable message text. This is used for RULETYPE=SOTA_RULETYPE_FAIL
 	--	TODO: Fill in token values
+	--	TODO: Add BIDTYPE (MS,OS) variable
 	
 
 	-- TODO:
 	-- * Remove all spaces in the rule. Not needed if rule is auto-generated.
 
 	--	1: Split by the "="; that way we know if this is a SUCCESS or FAIL rule:
-	local _, _, ruletype, ruleoper = string.find(rule, "(%a+)=(.+)");
+	local _, _, ruletype, ruleoper = string.find(ruleset[1], "(%a+)=(.+)");
 
 	if(string.upper(ruletype) == SOTA_RULETYPE_FAIL) then
 		RuleInfo["RULETYPE"] = SOTA_RULETYPE_FAIL;
@@ -736,11 +761,17 @@ function SOTA_ParseRule(rule)
 	local statementResult = true;
 	for n=1,table.getn(operations),1 do
 		local _, _, p1, operator, p2 = string.find(operations[n], "([%a%d]+)([><=]+)([%a%d]+)");
-		--echo(string.format("%d: P1='%s', Oper='%s', P2='%s'", n, p1, operator, p2));
+--		echo(string.format("%d: P1='%s', Oper='%s', P2='%s'", n, p1, operator, p2));
 
-		local v1 = SOTA_SubstituteParameter(p1);
-		local v2 = SOTA_SubstituteParameter(p2);
-		--echo(string.format("%d: V1='%d', Oper='%s', V2='%d'", n, v1, operator, v2));
+		local v1 = SOTA_SubstituteParameter(variables, p1);
+		local v2 = SOTA_SubstituteParameter(variables, p2);
+--[[
+echo(string.format("%d: V1='%d', Oper='%s', V2='%d'", n, v1, operator, v2));
+echo("bid: ".. variables['bid']);
+echo("min: ".. variables['min']);
+echo("bidrank: ".. variables['bidrank']);
+echo("currank: ".. variables['currank']);
+--]]
 
 		-- Do the calculation of each statement: As long they yield TRUE, the entire statement is TRUE as well.
 		statementResult = SOTA_CalculateOperation(v1, operator, v2);
@@ -759,11 +790,11 @@ function SOTA_ParseRule(rule)
 	if(statementResult) then
 		-- If entire statement is TRUE, then conditions was meet.
 		if RuleInfo["RULETYPE"] == SOTA_RULETYPE_FAIL then
-			RuleInfo["MESSAGE"] = "(A custom message for this rule)";
+			RuleInfo["MESSAGE"] = ruleset[2];
 		end;
 		RuleInfo["VALID"] = true;
 		RuleInfo["RESULT"] = true;
-		localEcho(string.format("Rule is VALID; %s = %s", RuleInfo["RULETYPE"], operations[n]));
+		localEcho("Rule is VALID");
 	else
 		localEcho("Rule conditions are broken");
 	end;
@@ -801,16 +832,16 @@ function SOTA_CalculateOperation(param1, operator, param2)
 	return statementResult;
 end;
 
-function SOTA_SubstituteParameter(parameter)
+function SOTA_SubstituteParameter(variables, parameter)
 	local value = nil;
-	if(parameter == "r") then
-		value = 5;
-	elseif(parameter == "R") then
-		value = 4;
-	elseif(parameter == "d") then
-		value = 1200;
-	elseif(parameter == "D") then
-		value = 1100;
+	if(parameter == "r") or (parameter == "rank")then
+		value = variables['bidrank'];
+	elseif(parameter == "R") or (parameter == "RANK") then
+		value = variables['currank'];
+	elseif(parameter == "d") or (parameter == "dkp") then
+		value = variables['bid'];
+	elseif(parameter == "D") or (parameter == "DKP")then
+		value = variables['min'];
 	else
 		value = tonumber(parameter);
 		if value == nil then
