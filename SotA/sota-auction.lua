@@ -293,20 +293,20 @@ function SOTA_HandlePlayerBid(sender, message)
 	end;
 
 	local bidderClass = playerInfo[3];
-	local bidderRank  = playerInfo[4];
+	local bidderRank  = playerInfo[4];		-- This rank is by NAME
+	local bidderRIdx  = playerInfo[7];		-- This rank is by NUMBER!
 	
 	local variables = { }
 	variables['bid'] = dkp;
 	variables['min'] = hiBid;
-	variables['bidrank'] = 6;	--bidderRank converted to number. We don't have that info yet! Lower = better
-	variables['currank'] = 3;	--current rank; Lower = better.
+	variables['bidrank'] = 6;				--bidderRank converted to number. We don't have that info yet! Lower = better
+	variables['currank'] = bidderRIdx;		--current rank(idx); Lower = better.
 
 	local ruleInfo = SOTA_ParseRules(variables);
 
 	if(ruleInfo['VALID']) and (ruleInfo['RESULT']) then
 		if(ruleInfo['RULETYPE'] == SOTA_RULETYPE_SUCCESS) then
-			-- Rule is valid; stop parsing more rules.
-			-- TODO: Add parser for a chain of rules; this one does nothing now!
+			-- A valid rule was found; continue with the bidding!
 		else
 			SOTA_whisper(sender, ruleInfo['MESSAGE']);
 			return;

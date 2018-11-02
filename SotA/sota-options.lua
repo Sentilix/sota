@@ -696,7 +696,9 @@ SOTA_RULETYPE_SUCCESS = "SUCCESS";
 
 
 --[[
---	Parse ALL rules
+--	Parse rules until either one rule match, or all rules fail.
+--	Variable array holds a list of the current variable values used to match rules.
+--	Currently the rules are hardcoded.
 --]]
 function SOTA_ParseRules(variables)
 
@@ -707,14 +709,29 @@ function SOTA_ParseRules(variables)
 --	local brokenText = "You cannot bid more than 5000 DKP when bidding against a member+ rank.";
 --	local ruleset = { rule, brokenText };
 
-	local rule = "FAIL=dkp>1000";
-	local brokenText = "You cannot bid more than 1000 DKP while testing!";
-	local ruleset = { rule, brokenText };
+	-- First test rule: No one can bid more than 1000 dkp:
+	rules[1] = { 
+		"FAIL=dkp>1000", 
+		"You cannot bid more than 1000 DKP while testing!" 
+	}
+	-- Second test rule: Bidding more than 500 DKP requires rank 4 or better (lower):
+	rules[2] = { 
+		"FAIL=dkp>500&rank>4", 
+		"You cannot bid more than 500 (req. rank 4)" 
+	}
 
-	rules[1] = { { rule, brokenText } }
+	local ruleInfo = { };
+	local ruleset;
+	for n=1, table.getn(rules), 1 do
+		ruleset = rules[n];
+		ruleInfo = SOTA_ParseRule(variables, ruleset);
 
-	return SOTA_ParseRule(variables, ruleset);
-
+		-- Rule came up with a result:
+		if((ruleInfo["VALID"] == true) and (ruleInfo["RESULT"] == true)) then
+			return ruleInfo;
+		end;
+	end;
+	return ruleInfo;
 end;
 
 
@@ -750,6 +767,8 @@ function SOTA_ParseRule(variables, ruleset)
 		localEcho(RuleInfo["ERROR"]);
 		return RuleInfo;
 	end
+--	echo("-------------------");
+--	echo(string.format("Parsing rule, type=%s, rule=%s", ruletype, ruleoper));
 
 	--	2: Split by the "&"; this will split the individual operations.
 	local operations = SOTA_StringSplit(ruleoper, '\&');
@@ -765,6 +784,7 @@ function SOTA_ParseRule(variables, ruleset)
 
 		local v1 = SOTA_SubstituteParameter(variables, p1);
 		local v2 = SOTA_SubstituteParameter(variables, p2);
+
 --[[
 echo(string.format("%d: V1='%d', Oper='%s', V2='%d'", n, v1, operator, v2));
 echo("bid: ".. variables['bid']);
@@ -781,7 +801,7 @@ echo("currank: ".. variables['currank']);
 			if RuleInfo["RULETYPE"] == SOTA_RULETYPE_FAIL then
 				RuleInfo["VALID"] = true;
 				RuleInfo["RESULT"] = false;
-				localEcho("Rule is INVALID; move to next rule");
+--				echo("Rule is INVALID; move to next rule");
 				return RuleInfo;
 			end;
 		end;
@@ -794,9 +814,9 @@ echo("currank: ".. variables['currank']);
 		end;
 		RuleInfo["VALID"] = true;
 		RuleInfo["RESULT"] = true;
-		localEcho("Rule is VALID");
-	else
-		localEcho("Rule conditions are broken");
+--		echo("Rule is VALID");
+--	else
+--		echo("Rule conditions are broken");
 	end;
 
 	return RuleInfo;

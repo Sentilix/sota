@@ -36,7 +36,7 @@ local MAX_CLASS_DKP_WHISPERED	= 5;
 -- true if a DKP job is already running
 local JobIsRunning				= false
 
--- Guild Roster: table of guild players:	{ Name, DKP, Class, Rank, Online, Zone }
+-- Guild Roster: table of guild players:	{ Name, DKP, Class, Rank(text), Online, Zone, Rank(value) }
 local GuildRosterTable			= { }
 
 -- Raid Roster: table of raid players:		{ Name, DKP, Class, Rank, Online }
@@ -430,7 +430,7 @@ function SOTA_RefreshGuildRoster()
 	local NewGuildRosterTable = { }
 	
 	for n=1,memberCount,1 do
-		local name, rank, _, _, class, zone, publicnote, officernote, online = GetGuildRosterInfo(n)
+		local name, rank, rankIndex, _, class, zone, publicnote, officernote, online = GetGuildRosterInfo(n)
 
 		if not zone then
 			zone = "";
@@ -457,7 +457,7 @@ function SOTA_RefreshGuildRoster()
 		
 		--echo(string.format("Added %s (%s)", name, online));
 		
-		NewGuildRosterTable[n] = { name, (1 * dkp), class, rank, online, zone }
+		NewGuildRosterTable[n] = { name, (1 * dkp), class, rank, online, zone, rankIndex };
 	end
 	
 	GuildRosterTable = NewGuildRosterTable;
