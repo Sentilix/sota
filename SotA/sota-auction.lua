@@ -21,7 +21,7 @@ local RAID_STATE_ENABLED		= 1
 
 -- Max # of bids shown in the AuctionUI
 local MAX_BIDS					= 10
--- List of valid bids: { Name, DKP, BidType(MS=1,OS=2), Class, Rank }
+-- List of valid bids: { Name, DKP, BidType(MS=1,OS=2), Class, RankName, RankIndex }
 local IncomingBidsTable			= { };
 
 -- Working variables:
@@ -287,29 +287,37 @@ function SOTA_HandlePlayerBid(sender, message)
 	local userWentAllIn = false;
 	local highestBid = SOTA_GetHighestBid(bidtype);
 
+	local hiRankIndex = 0;
 	local hiBid = SOTA_GetStartingDKP(bidtype);
 	if highestBid then
 		hiBid = highestBid[2];
+		hiRankIndex = highestBid[6];
 	end;
 
-	local bidderClass = playerInfo[3];
+
+
+	local bidderClass = playerInfo[3];		-- Info for the player placing the bid.
 	local bidderRank  = playerInfo[4];		-- This rank is by NAME
 	local bidderRIdx  = playerInfo[7];		-- This rank is by NUMBER!
 	
-	local variables = { }
-	variables['bid'] = dkp;
-	variables['min'] = hiBid;
-	variables['bidrank'] = 6;				--bidderRank converted to number. We don't have that info yet! Lower = better
-	variables['currank'] = bidderRIdx;		--current rank(idx); Lower = better.
+	-- Check bidding using Custom Bidding Strategy.
+	-- This does currently NOT check the min. bid, but it handles player ranks.
+	if SOTA_CONFIG_MinimumBidStrategy == 5 then
+		local variables = { }
+		variables['bid'] = dkp;
+		variables['min'] = hiBid;
+		variables['bidrank'] = hiRankIndex;		--Rank for the current highest bid (idx)
+		variables['currank'] = bidderRIdx;		--Rank for the player bidding (idx); Lower = better.
 
-	local ruleInfo = SOTA_ParseRules(variables);
+		local ruleInfo = SOTA_ParseRules(variables);
 
-	if(ruleInfo['VALID']) and (ruleInfo['RESULT']) then
-		if(ruleInfo['RULETYPE'] == SOTA_RULETYPE_SUCCESS) then
-			-- A valid rule was found; continue with the bidding!
-		else
-			SOTA_whisper(sender, ruleInfo['MESSAGE']);
-			return;
+		if(ruleInfo['VALID']) and (ruleInfo['RESULT']) then
+			if(ruleInfo['RULETYPE'] == SOTA_RULETYPE_SUCCESS) then
+				-- A valid rule was found; continue with the bidding!
+			else
+				SOTA_whisper(sender, ruleInfo['MESSAGE']);
+				return;
+			end;
 		end;
 	end;
 
@@ -362,7 +370,7 @@ function SOTA_HandlePlayerBid(sender, message)
 	end;
 	
 
-	SOTA_RegisterBid(sender, dkp, bidtype, bidderClass, bidderRank);
+	SOTA_RegisterBid(sender, dkp, bidtype, bidderClass, bidderRank, bidderRIdx);
 	
 		
 	-- Checks to perform now:
@@ -383,7 +391,7 @@ end
 
 
 
-function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rank)
+function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rankname, rankindex)
 	if bidtype == 2 then
 		SOTA_whisper(playername, string.format("Your Off-spec bid of %d DKP has been registered.", bid) );
 	else
@@ -392,7 +400,7 @@ function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rank)
 
 	IncomingBidsTable = SOTA_RenumberTable(IncomingBidsTable);
 	
-	IncomingBidsTable[table.getn(IncomingBidsTable) + 1] = { playername, bid, bidtype, playerclass, rank };
+	IncomingBidsTable[table.getn(IncomingBidsTable) + 1] = { playername, bid, bidtype, playerclass, rankname, rankindex };
 
 	-- Sort by DKP, then BidType (so MS bids are before OS bids)
 	SOTA_SortTableDescending(IncomingBidsTable, 2);
@@ -401,15 +409,21 @@ function SOTA_RegisterBid(playername, bid, bidtype, playerclass, rank)
 	end
 	
 	--Debug output:
-	--for n=1, table.getn(IncomingBidsTable), 1 do
-	--	local cbid = IncomingBidsTable[n];
-	--	local name = cbid[1];
-	--	local dkp  = cbid[2];
-	--	local type = cbid[3];
-	--	local clss = cbid[4];
-	--	local rank = cbid[5];
-	--	echo(string.format("%d - %s bid %d DKP, Type=%d, class=%s, rank=%s", n, name, dkp, type, clss, rank));
-	--end
+	--[[
+	for n=1, table.getn(IncomingBidsTable), 1 do
+		local cbid = IncomingBidsTable[n];
+		local name = cbid[1];
+		local dkp  = cbid[2];
+		local type = cbid[3];
+		local clss = cbid[4];
+		local rank = cbid[5];
+		local indx = cbid[6];
+		if(indx == nil) then
+			indx = -1;
+		end;
+		echo(string.format("%d - %s bid %d DKP, Type=%d, class=%s, rank=%s, index=%d", n, name, dkp, type, clss, rank, indx));
+	end
+	--]]
  
 	SOTA_UpdateBidElements();
 end

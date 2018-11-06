@@ -615,11 +615,26 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
+			<CheckButton name="$parentMinBidStrategy5" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="32" y="-264"/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						getglobal(this:GetName().."Text"):SetText("Custom bid rules")
+					</OnLoad>
+					<OnClick>
+						SOTA_HandleCheckbox(this);
+					</OnClick>
+				</Scripts>
+			</CheckButton>
 			<!-- DKP String Length, options: 0-8 -->
 			<Slider name="$parentDKPStringLength" minValue="0" maxValue="8" defaultValue="5" valueStep="1" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
-						<Offset x="64" y="-292"/>
+						<Offset x="64" y="-312"/>
 					</Anchor>
 				</Anchors>
 				<Size>
@@ -639,7 +654,7 @@
 			<Slider name="$parentMinimumDKPPenalty" minValue="0" maxValue="500" defaultValue="50" valueStep="10" inherits="OptionsSliderTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
-						<Offset x="64" y="-336"/>
+						<Offset x="64" y="-356"/>
 					</Anchor>
 				</Anchors>
 				<Size>
@@ -662,7 +677,6 @@
 	<!-- Configurable messages -->
 	<Frame name="FrameConfigMessage" parent="UIParent" toplevel="true" hidden="true" inherits="SOTA_ConfigurationFrameTemplate">
 		<Frames>
-
 			<!-- Message list frame -->
 			<ScrollFrame name="$parentTableList" inherits="FauxScrollFrameTemplate">
 				<Size>
@@ -775,6 +789,476 @@
 	<!-- Configuration Frame 2.2: Bid Rules -->
 	<!-- Configurable Bid Rules -->
 	<Frame name="FrameConfigBidRules" parent="UIParent" inherits="SOTA_ConfigurationFrameTemplate">
+		<Frames>
+			<!-- Rule 1 input field -->
+			<EditBox name="$parentRule1" letters="120">
+				<Size>
+					<AbsDimension x="240" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="84" y="-100"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEnterPressed")
+					</OnLoad>
+					<OnEnterPressed>
+						SOTA_SaveRules_OnClick()
+					</OnEnterPressed>
+				</Scripts>
+			</EditBox>
+			<!-- Text 1 input field -->
+			<EditBox name="$parentText1" letters="120">
+				<Size>
+					<AbsDimension x="240" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="84" y="-130"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEnterPressed")
+					</OnLoad>
+					<OnEnterPressed>
+						SOTA_SaveRules_OnClick()
+					</OnEnterPressed>
+				</Scripts>
+			</EditBox>
+
+			<!-- Rule 2 input field -->
+			<EditBox name="$parentRule2" letters="120">
+				<Size>
+					<AbsDimension x="240" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="84" y="-180"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEnterPressed")
+					</OnLoad>
+					<OnEnterPressed>
+						SOTA_SaveRules_OnClick()
+					</OnEnterPressed>
+				</Scripts>
+			</EditBox>
+			<!-- Text 2 input field -->
+			<EditBox name="$parentText2" letters="120">
+				<Size>
+					<AbsDimension x="240" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="84" y="-210"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEnterPressed")
+					</OnLoad>
+					<OnEnterPressed>
+						SOTA_SaveRules_OnClick()
+					</OnEnterPressed>
+				</Scripts>
+			</EditBox>
+
+			<!-- Rule 3 input field -->
+			<EditBox name="$parentRule3" letters="120">
+				<Size>
+					<AbsDimension x="240" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="84" y="-260"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEnterPressed")
+					</OnLoad>
+					<OnEnterPressed>
+						SOTA_SaveRules_OnClick()
+					</OnEnterPressed>
+				</Scripts>
+			</EditBox>
+			<!-- Text 3 input field -->
+			<EditBox name="$parentText3" letters="120">
+				<Size>
+					<AbsDimension x="240" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="84" y="-290"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEnterPressed")
+					</OnLoad>
+					<OnEnterPressed>
+						SOTA_SaveRules_OnClick()
+					</OnEnterPressed>
+				</Scripts>
+			</EditBox>
+
+			<!-- Rule 4 input field -->
+			<EditBox name="$parentRule4" letters="120">
+				<Size>
+					<AbsDimension x="240" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="84" y="-340"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEnterPressed")
+					</OnLoad>
+					<OnEnterPressed>
+						SOTA_SaveRules_OnClick()
+					</OnEnterPressed>
+				</Scripts>
+			</EditBox>
+			<!-- Text 4 input field -->
+			<EditBox name="$parentText4" letters="120">
+				<Size>
+					<AbsDimension x="240" y="20"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="84" y="-370"/>
+					</Anchor>
+				</Anchors>
+				<FontString inherits="GameFontNormal"/>
+				<Scripts>
+					<OnLoad>
+						this:RegisterEvent("OnEnterPressed")
+					</OnLoad>
+					<OnEnterPressed>
+						SOTA_SaveRules_OnClick()
+					</OnEnterPressed>
+				</Scripts>
+			</EditBox>
+
+		</Frames>
+		<Layers>
+			<Layer level="OVERLAY">
+				<!-- Rule 1 EditBox border -->
+				<Texture name="$parentRule1TxLeft" file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="74" y="146"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentRule1TxRight" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-50" y="146"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.875" right="1" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentRule1TxCenter" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="1" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentRule1TxLeft" relativePoint="RIGHT"/>
+						<Anchor point="RIGHT" relativeTo="$parentRule1TxRight" relativePoint="LEFT"/>
+					</Anchors>
+					<TexCoords left="0" right="0.9375" top="0" bottom="1.0" />
+				</Texture>
+				<!-- Text 1 EditBox border -->
+				<Texture name="$parentText1TxLeft" file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="74" y="116"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentText1TxRight" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-50" y="116"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.875" right="1" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentText1TxCenter" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="1" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentText1TxLeft" relativePoint="RIGHT"/>
+						<Anchor point="RIGHT" relativeTo="$parentText1TxRight" relativePoint="LEFT"/>
+					</Anchors>
+					<TexCoords left="0" right="0.9375" top="0" bottom="1.0" />
+				</Texture>
+
+				<!-- Rule 2 EditBox border -->
+				<Texture name="$parentRule2TxLeft" file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="74" y="66"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentRule2TxRight" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-50" y="66"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.875" right="1" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentRule2TxCenter" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="1" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentRule2TxLeft" relativePoint="RIGHT"/>
+						<Anchor point="RIGHT" relativeTo="$parentRule2TxRight" relativePoint="LEFT"/>
+					</Anchors>
+					<TexCoords left="0" right="0.9375" top="0" bottom="1.0" />
+				</Texture>
+				<!-- Text 2 EditBox border -->
+				<Texture name="$parentText2TxLeft" file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="74" y="36"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentText2TxRight" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-50" y="36"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.875" right="1" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentText2TxCenter" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="1" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentText2TxLeft" relativePoint="RIGHT"/>
+						<Anchor point="RIGHT" relativeTo="$parentText2TxRight" relativePoint="LEFT"/>
+					</Anchors>
+					<TexCoords left="0" right="0.9375" top="0" bottom="1.0" />
+				</Texture>
+
+				<!-- Rule 3 EditBox border -->
+				<Texture name="$parentRule3TxLeft" file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="74" y="-14"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentRule3TxRight" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-50" y="-14"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.875" right="1" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentRule3TxCenter" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="1" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentRule3TxLeft" relativePoint="RIGHT"/>
+						<Anchor point="RIGHT" relativeTo="$parentRule3TxRight" relativePoint="LEFT"/>
+					</Anchors>
+					<TexCoords left="0" right="0.9375" top="0" bottom="1.0" />
+				</Texture>
+				<!-- Text 3 EditBox border -->
+				<Texture name="$parentText3TxLeft" file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="74" y="-44"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentText3TxRight" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-50" y="-44"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.875" right="1" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentText3TxCenter" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="1" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentText3TxLeft" relativePoint="RIGHT"/>
+						<Anchor point="RIGHT" relativeTo="$parentText3TxRight" relativePoint="LEFT"/>
+					</Anchors>
+					<TexCoords left="0" right="0.9375" top="0" bottom="1.0" />
+				</Texture>
+
+				<!-- Rule 4 EditBox border -->
+				<Texture name="$parentRule4TxLeft" file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="74" y="-94"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentRule4TxRight" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-50" y="-94"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.875" right="1" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentRule4TxCenter" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="1" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentRule4TxLeft" relativePoint="RIGHT"/>
+						<Anchor point="RIGHT" relativeTo="$parentRule4TxRight" relativePoint="LEFT"/>
+					</Anchors>
+					<TexCoords left="0" right="0.9375" top="0" bottom="1.0" />
+				</Texture>
+				<!-- Text 4 EditBox border -->
+				<Texture name="$parentText4TxLeft" file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT">
+							<Offset>
+								<AbsDimension x="74" y="-124"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0" right="0.125" top="0" bottom="1.0"/>
+				</Texture>
+				<Texture name="$parentText4TxRight" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="32" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="RIGHT">
+							<Offset>
+								<AbsDimension x="-50" y="-124"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.875" right="1" top="0" bottom="1.0" />
+				</Texture>
+				<Texture name="$parentText4TxCenter" file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+					<Size>
+						<AbsDimension x="1" y="32"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentText4TxLeft" relativePoint="RIGHT"/>
+						<Anchor point="RIGHT" relativeTo="$parentText4TxRight" relativePoint="LEFT"/>
+					</Anchors>
+					<TexCoords left="0" right="0.9375" top="0" bottom="1.0" />
+				</Texture>
+
+			</Layer>
+		</Layers>
 	</Frame>
 
 	<!-- Configuration Frame 2.3: Sync Cfg -->

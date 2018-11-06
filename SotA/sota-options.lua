@@ -12,9 +12,9 @@ local ConfigurationDialogOpen	= false;
 
 
 
-function SOTA_EchoEvent(msgKey, item, dkp, bidder, rank)
-	local msgInfo = SOTA_getConfigurableMessage(msgKey, item, dkp, bidder, rank);
-	publicEcho(msgInfo);			
+function SOTA_EchoEvent(msgKey, item, dkp, bidder, rank, param1, param2, param3)
+	local msgInfo = SOTA_getConfigurableMessage(msgKey, item, dkp, bidder, rank, param1, param2, param3);
+	publicEcho(msgInfo);
 end;
 
 
@@ -34,11 +34,11 @@ end;
 --[[
 --	Get configurable message and fill out placeholders:
 --	Parameters:
---	%i: Item, %d: DKP, %b: Bidder, %r: Rank
+--	%i: Item, %d: DKP, %b: Bidder, %r: Rank, $1,$2,$3: params (percent, players in range, players in queue etc)
 --	Automatic gathered:
 --	%m: Min DKP, %s: SotA master
 --]]
-function SOTA_getConfigurableMessage(msgKey, item, dkp, bidder, rank)
+function SOTA_getConfigurableMessage(msgKey, item, dkp, bidder, rank, param1, param2, param3)
 
 	local msgInfo = SOTA_GetEventText(msgKey);
 
@@ -51,6 +51,9 @@ function SOTA_getConfigurableMessage(msgKey, item, dkp, bidder, rank)
 	if not(dkp)		then dkp = ""; end;
 	if not(bidder)	then bidder = ""; end;
 	if not(rank)	then rank = ""; end;
+	if not(param1)	then param1 = ""; end;
+	if not(param2)	then param2 = ""; end;
+	if not(param3)	then param3 = ""; end;
 
 	local msg = msgInfo[3];
 	msg = string.gsub(msg, "$i", ""..item);
@@ -59,6 +62,9 @@ function SOTA_getConfigurableMessage(msgKey, item, dkp, bidder, rank)
 	msg = string.gsub(msg, "$r", ""..rank);
 	msg = string.gsub(msg, "$m", ""..SOTA_GetMinimumBid());
 	msg = string.gsub(msg, "$s", UnitName("player"));
+	msg = string.gsub(msg, "$1", ""..param1);
+	msg = string.gsub(msg, "$2", ""..param2);
+	msg = string.gsub(msg, "$3", ""..param3);
 	
 	return { msgInfo[1], msgInfo[2], msg };
 end;
@@ -125,6 +131,10 @@ function SOTA_CloseAllConfig()
 	FrameConfigSyncCfg:Hide();
 end;
 
+function SOTA_SaveRules_OnClick()
+	SOTA_CONFIG_BIDRULES = SOTA_GetBidRules();
+end;
+
 function SOTA_ToggleConfigurationUI()
 	if ConfigurationDialogOpen then
 		SOTA_CloseConfigurationUI();
@@ -154,6 +164,7 @@ function SOTA_OpenMessageConfig()
 end
 
 function SOTA_OpenBidRulesConfig()
+	SOTA_SetBidRules();
 	SOTA_CloseAllConfig();
 	FrameConfigBidRules:Show();
 end;
@@ -334,7 +345,19 @@ function SOTA_VerifyEventMessages()
 		{ SOTA_MSG_OnPause			, 2, "Auction has been Paused" },
 		{ SOTA_MSG_OnResume			, 2, "Auction has been Resumed" },
 		{ SOTA_MSG_OnClose			, 1, "Auction for $i is over" },
-		{ SOTA_MSG_OnCancel			, 1, "Auction was Cancelled" }
+		{ SOTA_MSG_OnCancel			, 1, "Auction was Cancelled" },
+		{ SOTA_MSG_OnDKPAdded		, 1, "$d DKP was added to $b" },
+		{ SOTA_MSG_OnDKPAddedRaid	, 1, "$d DKP was added to all players in raid" },
+		{ SOTA_MSG_OnDKPAddedRange	, 1, "$d DKP has been added for $1 players in range." },
+		{ SOTA_MSG_OnDKPAddedQueue	, 1, "$d DKP has been added for $1 players in range (incl $2 in queue)." },
+		{ SOTA_MSG_OnDKPSubtract	, 1, "$d DKP was subtracted from $b" },
+		{ SOTA_MSG_OnDKPSubtractRaid, 1, "$d DKP was subtracted from all players in raid" },
+		{ SOTA_MSG_OnDKPPercent		, 1, "$1 % ($d DKP) was subtracted from $b" },
+		{ SOTA_MSG_OnDKPShared		, 1, "$1 DKP was shared ($d DKP per player)" },
+		{ SOTA_MSG_OnDKPSharedQueue , 1, "$1 DKP was shared ($d DKP per player plus $2 in queue)" },
+		{ SOTA_MSG_OnDKPSharedRange , 1, "$1 DKP was shared for $2 players in range ($d DKP per player)" },
+		{ SOTA_MSG_OnDKPSharedRangeQ, 1, "$1 DKP was shared for $2 players in range ($d DKP per player, incl $3 in queue)" },
+		{ SOTA_MSG_OnDKPReplaced	, 1, "$1 was replaced with $2 ($d DKP)" }
 	}
 
 	-- Merge default messages into saved messages; in case we added some new event names.
@@ -343,26 +366,26 @@ function SOTA_VerifyEventMessages()
 		messages = { }
 	end;
 
+	echo("--- Merging messages");
 	for n=1,table.getn(defaultMessages), 1 do
 		local foundMessage = false;
 		for f=1,table.getn(messages), 1 do
 			if(messages[f][1] == defaultMessages[n][1]) then
 				foundMessage = true;
-				echo("Found!");
+--				echo("Found msg: ".. messages[f][1]);
 				break;
 			end;
 		end;
 
 		if(not foundMessage) then
-			echo("Adding message: ".. defaultMessages[n][1]);
+--			echo("Adding message: ".. defaultMessages[n][1]);
 			messages[table.getn(messages)+1] = defaultMessages[n];
 		end;
 	end
 
 	SOTA_SetConfigurableTextMessages(messages);
-
-
 end;
+
 
 function SOTA_HandleCheckbox(checkbox)
 	local checkboxname = checkbox:GetName();
@@ -437,31 +460,43 @@ function SOTA_HandleCheckbox(checkbox)
 			getglobal("FrameConfigMiscDkpMinBidStrategy2"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy3"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy4"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy5"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 0;
 		elseif checkboxname == "FrameConfigBossDkpMinBidStrategy1" then
 			getglobal("FrameConfigMiscDkpMinBidStrategy0"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy2"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy3"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy4"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy5"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 1;
 		elseif checkboxname == "FrameConfigMiscDkpMinBidStrategy2" then
 			getglobal("FrameConfigMiscDkpMinBidStrategy0"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy1"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy3"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy4"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy5"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 2;
 		elseif checkboxname == "FrameConfigMiscDkpMinBidStrategy3" then
 			getglobal("FrameConfigMiscDkpMinBidStrategy0"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy1"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy2"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy4"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy5"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 3;			
 		elseif checkboxname == "FrameConfigMiscDkpMinBidStrategy4" then
 			getglobal("FrameConfigMiscDkpMinBidStrategy0"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy1"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy2"):SetChecked(0);
 			getglobal("FrameConfigMiscDkpMinBidStrategy3"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy5"):SetChecked(0);
 			SOTA_CONFIG_MinimumBidStrategy = 4;
+		elseif checkboxname == "FrameConfigMiscDkpMinBidStrategy5" then
+			getglobal("FrameConfigMiscDkpMinBidStrategy0"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy1"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy2"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy3"):SetChecked(0);
+			getglobal("FrameConfigMiscDkpMinBidStrategy4"):SetChecked(0);
+			SOTA_CONFIG_MinimumBidStrategy = 5;
 		end
 	end
 end
@@ -611,7 +646,10 @@ function SOTA_RefreshVisibleTextList(offset)
 end
 
 function SOTA_UpdateTextList(frame)
-	FauxScrollFrame_Update(FrameConfigMessageTableList, SOTA_MAX_MESSAGES, 10, 20);
+--	FauxScrollFrame_Update(FrameConfigMessageTableList, SOTA_MAX_MESSAGES, 10, 20);
+	local messages = SOTA_GetConfigurableTextMessages();
+
+	FauxScrollFrame_Update(FrameConfigMessageTableList, table.getn(messages), SOTA_MAX_MESSAGES, 20);
 	local offset = FauxScrollFrame_GetOffset(FrameConfigMessageTableList);
 	
 	SOTA_RefreshVisibleTextList(offset);
@@ -702,9 +740,10 @@ SOTA_RULETYPE_SUCCESS = "SUCCESS";
 --]]
 function SOTA_ParseRules(variables)
 
+--[[
 	local rules = { }
 
-	-- Check rule engine: Is this bid valid according to custom rules?
+-- Check rule engine: Is this bid valid according to custom rules?
 --	local rule = "FAIL=DKP>=1000&rank<5&RANK<5&rank<RANK";
 --	local brokenText = "You cannot bid more than 5000 DKP when bidding against a member+ rank.";
 --	local ruleset = { rule, brokenText };
@@ -719,20 +758,80 @@ function SOTA_ParseRules(variables)
 		"FAIL=dkp>500&rank>4", 
 		"You cannot bid more than 500 (req. rank 4)" 
 	}
+--]]
 
+	local rules = SOTA_GetBidRules();
 	local ruleInfo = { };
-	local ruleset;
-	for n=1, table.getn(rules), 1 do
-		ruleset = rules[n];
-		ruleInfo = SOTA_ParseRule(variables, ruleset);
 
-		-- Rule came up with a result:
-		if((ruleInfo["VALID"] == true) and (ruleInfo["RESULT"] == true)) then
-			return ruleInfo;
+	if table.getn(rules) > 0 then
+		local ruleset;
+		for n=1, table.getn(rules), 1 do
+			ruleset = rules[n];
+			ruleInfo = SOTA_ParseRule(variables, ruleset);
+
+			-- Rule came up with a result:
+			if((ruleInfo["VALID"] == true) and (ruleInfo["RESULT"] == true)) then
+				return ruleInfo;
+			end;
 		end;
 	end;
+
 	return ruleInfo;
 end;
+
+
+function SOTA_GetBidRules()
+	local maxRules = 4;
+	local rules = { };
+
+	local index = 1;
+	local rule, text;
+	local rulebox = "FrameConfigBidRulesRule%d";
+	local textbox = "FrameConfigBidRulesText%d";
+	local obj;
+
+	for n=1,maxRules,1 do
+		obj = getglobal(string.format(rulebox, n));
+		if obj then
+			rule = obj:GetText();
+			if rule ~= "" then
+				text = "";
+				obj = getglobal(string.format(textbox, n));
+				if obj then
+					text = obj:GetText();
+				end;
+
+				rules[index] = { rule, text };
+				index = index + 1;
+			end;
+		end;
+	end;
+
+	return rules;
+end;
+
+
+function SOTA_SetBidRules()
+	local maxRules = 4;
+	local rulebox = "FrameConfigBidRulesRule%d";
+	local textbox = "FrameConfigBidRulesText%d";
+	local index = 1;
+	local rule, text;
+
+	for n=1,maxRules,1 do
+		if table.getn(SOTA_CONFIG_BIDRULES) >= n then
+			rule = SOTA_CONFIG_BIDRULES[n][1];
+			text = SOTA_CONFIG_BIDRULES[n][2];
+		else
+			rule = "";
+			text = "";
+		end;
+		getglobal(string.format(rulebox, index)):SetText(rule);
+		getglobal(string.format(textbox, index)):SetText(text);
+		index = index + 1;
+	end;
+end;
+
 
 
 --[[
@@ -747,7 +846,6 @@ function SOTA_ParseRule(variables, ruleset)
 	RuleInfo["MESSAGE"]		= '';		-- Custom message; used when FAIL returns TRUE (message to the user why he cannot bid)
 	RuleInfo["ERROR"]		= '';		-- Error message; used when VALID returns FALSE.
 
-	--	TODO: A rule needs a configurable message text. This is used for RULETYPE=SOTA_RULETYPE_FAIL
 	--	TODO: Fill in token values
 	--	TODO: Add BIDTYPE (MS,OS) variable
 	
@@ -843,11 +941,11 @@ function SOTA_CalculateOperation(param1, operator, param2)
 		return nil;
 	end;
 
-	if(statementResult) then
-		localEcho(string.format("%d %s %d = TRUE", param1, operator, param2));
-	else
-		localEcho(string.format("%d %s %d = FALSE", param1, operator, param2));
-	end;
+--	if(statementResult) then
+--		localEcho(string.format("%d %s %d = TRUE", param1, operator, param2));
+--	else
+--		localEcho(string.format("%d %s %d = FALSE", param1, operator, param2));
+--	end;
 
 	return statementResult;
 end;

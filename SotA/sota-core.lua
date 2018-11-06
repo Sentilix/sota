@@ -99,6 +99,19 @@ SOTA_MSG_OnPause			= "OnPause";
 SOTA_MSG_OnResume			= "OnResume";
 SOTA_MSG_OnClose			= "OnEnd";
 SOTA_MSG_OnCancel			= "OnCancel";
+SOTA_MSG_OnDKPAdded			= "OnDKPAddedPlayer";
+SOTA_MSG_OnDKPAddedRaid		= "OnDKPAddedRaid";
+SOTA_MSG_OnDKPAddedRange	= "OnDKPAddedRange";
+SOTA_MSG_OnDKPAddedQueue	= "OnDKPAddedQueue";
+SOTA_MSG_OnDKPSubtract		= "OnDKPSubtractedPlayer";
+SOTA_MSG_OnDKPSubtractRaid	= "OnDKPSubtractedRaid";
+SOTA_MSG_OnDKPPercent		= "OnDKPSubtractedPercent";
+SOTA_MSG_OnDKPShared		= "OnDKPShared";
+SOTA_MSG_OnDKPSharedQueue	= "OnDKPSharedQueue";
+SOTA_MSG_OnDKPSharedRange	= "OnDKPSharedRange";
+SOTA_MSG_OnDKPSharedRangeQ	= "OnDKPSharedRangeQueue";
+SOTA_MSG_OnDKPReplaced		= "OnDKPReplaced";
+
 
 
 --	Settings (persisted)
@@ -127,11 +140,15 @@ local SOTA_CONFIG_DEFAULT_BossDKP = {
 }
 -- Pane 3:
 SOTA_CONFIG_UseGuildNotes		= 0;
-SOTA_CONFIG_MinimumBidStrategy	= 1;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules
+SOTA_CONFIG_MinimumBidStrategy	= 1;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules, 4: DejaVu rules, 5: Custom rules
 SOTA_CONFIG_DKPStringLength		= 5;
 SOTA_CONFIG_MinimumDKPPenalty	= 50;	-- Minimum DKP withdrawn when doing percent DKP
 -- History: (basically a copy of the transaction log, but not shared with others)
 SOTA_HISTORY_DKP				= { }	-- { timestamp, tid, author, description, state, { names, dkp } }
+
+-- Pane 4: (Messages)
+-- Pane 5: (Bid rules)
+SOTA_CONFIG_BIDRULES			= { };	-- Array of Rules + Texts
 
 
 
@@ -151,6 +168,7 @@ function debugEcho(msg)
 end
 
 function publicEcho(msgInfo)
+
 	if(msgInfo) and (msgInfo[3] ~= "") then
 		local channelName;
 
@@ -686,7 +704,8 @@ function SOTA_AddPlayerDKP(playername, dkpValue, silentmode)
 	if SOTA_ApplyPlayerDKP(playername, dkpValue) then
 		playername = SOTA_UCFirst(playername);
 		if not silentmode then
-			publicEcho(string.format("%d DKP was added to %s", dkpValue, playername));
+			--publicEcho(string.format("%d DKP was added to %s", dkpValue, playername));
+			SOTA_EchoEvent(SOTA_MSG_OnDKPAdded, "", dkpValue, playername);
 		end
 		SOTA_LogSingleTransaction("+Player", playername, dkpValue);
 	end
@@ -726,7 +745,8 @@ function SOTA_SwapPlayersInTransaction(transactionID, newPlayer, silentmode)
 			originalPlayer = SOTA_UCFirst(originalPlayer);
 			SOTA_LogSingleTransaction("-Swap", originalPlayer, -1 * dkpValue);
 			
-			publicEcho(string.format("%s was replaced with %s (%d DKP)", originalPlayer, newPlayer, dkpValue));
+--			publicEcho(string.format("%s was replaced with %s (%d DKP)", originalPlayer, newPlayer, dkpValue));
+			SOTA_EchoEvent(SOTA_MSG_OnDKPReplaced, "", dkpValue, "", "", originalPlayer, newPlayer);
 		end
 	end
 end
@@ -747,7 +767,8 @@ function SOTA_SubtractPlayerDKP(playername, dkpValue, silentmode)
 	if SOTA_ApplyPlayerDKP(playername, dkpValue) then
 		playername = SOTA_UCFirst(playername);
 		if not silentmode then
-			publicEcho(string.format("%d DKP was subtracted from %s", abs(dkpValue), playername));
+--			publicEcho(string.format("%d DKP was subtracted from %s", abs(dkpValue), playername));
+			SOTA_EchoEvent(SOTA_MSG_OnDKPSubtract, "", abs(dkpValue), playername);
 		end
 		SOTA_LogSingleTransaction("-Player", playername, dkpValue);
 	end
@@ -775,7 +796,8 @@ function SOTA_SubtractPlayerDKPPercent(playername, percent, silentmode)
 		SOTA_ApplyPlayerDKP(playername, -1 * minus, true);
 		
 		if not silentmode then
-			publicEcho(string.format("%d %% (%d DKP) was subtracted from %s", percent, minus, playername));
+--			publicEcho(string.format("%d %% (%d DKP) was subtracted from %s", percent, minus, playername));
+			SOTA_EchoEvent(SOTA_MSG_OnDKPPercent, "", minus, playername, "", percent);
 		end
 
 		SOTA_LogSingleTransaction("%Player", playername, -1 * abs(minus));
@@ -859,7 +881,8 @@ function SOTA_AddRaidDKP(dkp, silentmode, callMethod)
 		end
 		
 		if not silentmode then
-			publicEcho(string.format("%d DKP was added to all players in raid", dkp));
+--			publicEcho(string.format("%d DKP was added to all players in raid", dkp));
+			SOTA_EchoEvent(SOTA_MSG_OnDKPAddedRaid, "", dkp);
 		end
 		
 		SOTA_LogMultipleTransactions(callMethod, tidChanges)				
@@ -909,7 +932,8 @@ function SOTA_SubtractRaidDKP(dkp, silentmode, callMethod)
 		end
 		
 		if not silentmode then
-			publicEcho(string.format("%d DKP was subtracted from all players in raid", abs(dkp)));
+--			publicEcho(string.format("%d DKP was subtracted from all players in raid", abs(dkp)));
+			SOTA_EchoEvent(SOTA_MSG_OnDKPSubtractRaid, "", dkp);
 		end
 
 		SOTA_LogMultipleTransactions(callMethod, tidChanges)
@@ -993,9 +1017,11 @@ function SOTA_AddRangedDKP(dkp, silentmode, dkpLabel, shareTheDKP)
 	
 	if not silentmode then
 		if SOTA_QueuedPlayersImpacted == 0 then
-			publicEcho(string.format("%d DKP has been added for %d players in range.", dkp, raidUpdateCount));
+--			publicEcho(string.format("%d DKP has been added for %d players in range.", dkp, raidUpdateCount));
+			SOTA_EchoEvent(SOTA_MSG_OnDKPAddedRange, "", dkp, "", "", raidUpdateCount);
 		else
-			publicEcho(string.format("%d DKP has been added for %d players in range (plus %d in queue).", dkp, raidUpdateCount, SOTA_QueuedPlayersImpacted));
+--			publicEcho(string.format("%d DKP has been added for %d players in range (plus %d in queue).", dkp, raidUpdateCount, SOTA_QueuedPlayersImpacted));
+			SOTA_EchoEvent(SOTA_MSG_OnDKPAddedQueue, "", dkp, "", "", raidUpdateCount, SOTA_QueuedPlayersImpacted);
 		end;
 	end
 	
@@ -1067,9 +1093,11 @@ function SOTA_ShareDKP(sharedDkp)
 		
 		if SOTA_AddRaidDKP(dkp, true, "+Share") then
 			if SOTA_QueuedPlayersImpacteded == 0 then
-				publicEcho(string.format("%d DKP was shared (%s DKP per player)", sharedDkp, dkp));
+--				publicEcho(string.format("%d DKP was shared (%s DKP per player)", sharedDkp, dkp));
+				SOTA_EchoEvent(SOTA_MSG_OnDKPShared, "", dkp, "", "", sharedDkp);
 			else
-				publicEcho(string.format("%d DKP was shared (%s DKP per player plus %d in queue)", sharedDkp, dkp, SOTA_QueuedPlayersImpacteded));
+--				publicEcho(string.format("%d DKP was shared (%s DKP per player plus %d in queue)", sharedDkp, dkp, SOTA_QueuedPlayersImpacteded));
+				SOTA_EchoEvent(SOTA_MSG_OnDKPSharedQueue, "", dkp, "", "", sharedDkp, SOTA_QueuedPlayersImpacteded);
 			end;
 		end
 		return true;
@@ -1097,9 +1125,11 @@ function SOTA_ShareRangedDKP(sharedDkp)
 		if inRange > 0 then
 			local dkp = ceil(sharedDkp / inRange);
 			if SOTA_QueuedPlayersImpacted == 0 then
-				publicEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player)", sharedDkp, inRange, dkp));
+--				publicEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player)", sharedDkp, inRange, dkp));
+				SOTA_EchoEvent(SOTA_MSG_OnDKPSharedRange, "", dkp, "", "", sharedDkp, inRange);
 			else
-				publicEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player plus %d in queue)", sharedDkp, inRange, dkp, SOTA_QueuedPlayersImpacted));
+--				publicEcho(string.format("%d DKP was shared for %d players in range (%s DKP per player plus %d in queue)", sharedDkp, inRange, dkp, SOTA_QueuedPlayersImpacted));
+				SOTA_EchoEvent(SOTA_MSG_OnDKPSharedRangeQ, "", dkp, "", "", sharedDkp, inRange, SOTA_QueuedPlayersImpacted);
 			end;
 		end
 		return true;
@@ -1745,6 +1775,9 @@ function SOTA_GetMinimumBid(bidtype)
 	elseif SOTA_CONFIG_MinimumBidStrategy == 3 then
 		minimumBid = strategyGGCRules(minimumBid);
 	elseif SOTA_CONFIG_MinimumBidStrategy == 4 then
+		minimumBid = strategyDejaVuRules(minimumBid);
+	elseif SOTA_CONFIG_MinimumBidStrategy == 5 then
+		-- TODO: Custom bidding currently does not define any custom min.bid strategy
 		minimumBid = strategyDejaVuRules(minimumBid);
 	else
 		-- Fallback strategy (no strategy)
