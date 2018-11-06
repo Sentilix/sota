@@ -195,7 +195,7 @@
 				</Scripts>
 			</Button>
 			<!-- Line 2, button 3: Sync Cfg config button -->
-			<Button name="$parentConfigTabButton6" inherits="UIPanelButtonTemplate" text="Sync Cfg">
+			<Button name="$parentConfigTabButton6" inherits="UIPanelButtonTemplate" text="Sync Cfg" hidden="true">
 				<Size>
 					<AbsDimension x="80" y="23" />
 				</Size>
