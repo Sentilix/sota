@@ -171,6 +171,7 @@ end;
 
 function SOTA_OpenSyncCfgConfig()
 	SOTA_CloseAllConfig();
+	SOTA_RequestUpdateConfigVersion();
 	FrameConfigSyncCfg:Show();
 end;
 

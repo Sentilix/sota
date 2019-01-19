@@ -302,6 +302,7 @@ function SOTA_HandlePlayerBid(sender, message)
 	
 	-- Check bidding using Custom Bidding Strategy.
 	-- This does currently NOT check the min. bid, but it handles player ranks.
+	--[[
 	if SOTA_CONFIG_MinimumBidStrategy == 5 then
 		local variables = { }
 		variables['bid'] = dkp;
@@ -320,6 +321,7 @@ function SOTA_HandlePlayerBid(sender, message)
 			end;
 		end;
 	end;
+	--]]
 
 
 	-- Check user at least did bid more than last bidder:

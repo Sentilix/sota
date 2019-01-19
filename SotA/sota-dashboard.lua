@@ -1051,6 +1051,41 @@ function SOTA_HandleRXSyncRaidQueue(message, sender)
 	SOTA_AddToRaidQueue(name, role, true);
 end
 
+--[[
+--	Send a RequestCfgSyncVersion to all clients and await response.
+--	Since: 1.2.0
+--]]
+function SOTA_RequestUpdateConfigVersion()
+	echo("In SOTA_RequestUpdateConfigVersion");
+	addonEcho("TX_CFGSYNCREQ##");
+end;
+
+--[[
+--	Return current Cfg version to [sender]
+--]]
+function SOTA_HandleTXConfigSyncRequest(message, sender)
+	echo("In SOTA_HandleTXConfigSyncRequest");
+
+	if not SOTA_CONFIG_VersionNumber then
+		SOTA_CONFIG_VersionNumber = -1;
+	end;
+	if not SOTA_CONFIG_VersionDate then
+		SOTA_CONFIG_VersionDate = "nil";
+	end;
+
+	addonEcho("RX_CFGSYNCREQ#"..SOTA_CONFIG_VersionNumber..","..SOTA_CONFIG_VersionDate.."#"..sender);
+end;
+
+function SOTA_HandleRXConfigSyncRequest(message, sender)
+	echo("In SOTA_HandleRXConfigSyncRequest");
+
+	local _, _, senderVersion, senderDate = string.find(message, "([^,]*),([^,]*)")
+
+	-- TODO: Add this message to list of known versions:
+	echo(string.format("Sender=%s, version=%s, date=%s", sender, senderVersion, senderDate));
+end;
+
+
 
 function SOTA_OnChatMsgAddon(event, prefix, msg, channel, sender)
 	--echo(string.format("Prefix=%s, MSG=%s", prefix, msg));
@@ -1060,7 +1095,7 @@ function SOTA_OnChatMsgAddon(event, prefix, msg, channel, sender)
 		local _, _, cmd, message, recipient = string.find(msg, "([^#]*)#([^#]*)#([^#]*)")
 
 		if not cmd then
-			return	-- cmd is mandatory, remaining parameters are optionel.
+			return	-- cmd is mandatory, remaining parameters are optional.
 		end
 
 		--	Ignore message if it is not for me. Receipient can be blank, which means it is for everyone.
@@ -1074,7 +1109,7 @@ function SOTA_OnChatMsgAddon(event, prefix, msg, channel, sender)
 			message = ""
 		end
 		
-		--echo(string.format("Incoming: CMD=%s, MSG=%s, Sender=%s, Recipient: %s", cmd, message, sender, recipient));
+		echo(string.format("Incoming: CMD=%s, MSG=%s, Sender=%s, Recipient: %s", cmd, message, sender, recipient));
 	
 		if cmd == "TX_VERSION" then
 			if prefix == "GuildDKPv1" then
@@ -1106,6 +1141,10 @@ function SOTA_OnChatMsgAddon(event, prefix, msg, channel, sender)
 			SOTA_HandleTXSyncRaidQueueInit(message, sender)
 		elseif cmd == "RX_SYNCRQINIT" then
 			SOTA_HandleRXSyncRaidQueueInit(message, sender)
+		elseif cmd == "TX_CFGSYNCREQ" then
+			SOTA_HandleTXConfigSyncRequest(message, sender)
+		elseif cmd == "RX_CFGSYNCREQ" then
+			SOTA_HandleRXConfigSyncRequest(message, sender)
 		elseif cmd == "TX_SETMASTER" then
 			SOTA_HandleTXMaster(message, sender)		
 		elseif cmd == "TX_JOINQUEUE" then
@@ -1306,7 +1345,15 @@ function SOTA_OnLoad()
 	
 	if SOTA_IsInRaid(true) then	
 		SOTA_Synchronize();
-	end	
+	end
+	
+	if not SOTA_CONFIG_VersionNumber then
+		SOTA_CONFIG_VersionNumber = 1;
+	end;
+	if not SOTA_CONFIG_VersionDate then
+		SOTA_CONFIG_VersionDate = SOTA_GetDateTimestamp();
+	end;
+	SOTA_CONFIG_Modified = false;
 
 	SOTA_InitializeTextElements();
 end

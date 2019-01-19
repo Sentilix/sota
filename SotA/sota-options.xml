@@ -179,7 +179,7 @@
 				</Scripts>
 			</Button>
 			<!-- Line 2, button 2: Bid Rules config button -->
-			<Button name="$parentConfigTabButton5" inherits="UIPanelButtonTemplate" text="Bid Rules">
+			<Button name="$parentConfigTabButton5" inherits="UIPanelButtonTemplate" text="Bid Rules" hidden="true">
 				<Size>
 					<AbsDimension x="80" y="23" />
 				</Size>
@@ -615,6 +615,7 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
+			<!--
 			<CheckButton name="$parentMinBidStrategy5" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
@@ -630,6 +631,7 @@
 					</OnClick>
 				</Scripts>
 			</CheckButton>
+			-->
 			<!-- DKP String Length, options: 0-8 -->
 			<Slider name="$parentDKPStringLength" minValue="0" maxValue="8" defaultValue="5" valueStep="1" inherits="OptionsSliderTemplate">
 				<Anchors>
@@ -1264,6 +1266,37 @@
 	<!-- Configuration Frame 2.3: Sync Cfg -->
 	<!-- Synchronize Configuration to other SotA users -->
 	<Frame name="FrameConfigSyncCfg" parent="UIParent" inherits="SOTA_ConfigurationFrameTemplate">
+		<Frames>
+			<!-- Message list frame -->
+			<ScrollFrame name="$parentTableList" inherits="FauxScrollFrameTemplate">
+				<Size>
+					<AbsDimension x="286" y="250"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="26" y="-80"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<TileSize>
+						<AbsValue val="16"/>
+					</TileSize>
+				</Backdrop>
+				<Scripts>
+					<OnVerticalScroll>
+						--FauxScrollFrame_OnVerticalScroll(20, SOTA_UpdateTextList);
+					</OnVerticalScroll>
+					<OnShow>						
+						--SOTA_UpdateTextList()
+					</OnShow>
+				</Scripts>
+			</ScrollFrame>
+		</Frames>
 	</Frame>
 
 

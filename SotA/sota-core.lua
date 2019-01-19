@@ -125,7 +125,9 @@ SOTA_CONFIG_AllowPlayerPass     = 1;	-- 0: No pass, 1: can pass latest bid
 SOTA_CONFIG_DisableDashboard	= 0;	-- Disable Dashboard in UI (hide it)
 SOTA_CONFIG_OutputChannel		= WARN_CHANNEL;
 SOTA_CONFIG_Messages			= { }	-- Contains configurable raid messages (if any)
-	
+SOTA_CONFIG_VersionNumber		= nil;	-- Increases for every change!
+SOTA_CONFIG_VersionDate			= nil;	-- Date of last change!
+
 
 -- Pane 2:
 SOTA_CONFIG_BossDKP				= { }
@@ -139,6 +141,7 @@ local SOTA_CONFIG_DEFAULT_BossDKP = {
 	{ "WorldBosses",	400 }
 }
 -- Pane 3:
+SOTA_CONFIG_Modified			= false;	-- If TRUE, then config number has been updated; FALSE: not.
 SOTA_CONFIG_UseGuildNotes		= 0;
 SOTA_CONFIG_MinimumBidStrategy	= 1;	-- 0: No strategy, 1: +10 DKP, 2: +10 %, 3: GGC rules, 4: DejaVu rules, 5: Custom rules
 SOTA_CONFIG_DKPStringLength		= 5;

@@ -109,8 +109,8 @@ DONE:
 - [Feature 1.2.0-2] Added: Configurable message channels
 - Bugfix: "!" params check handles non-"!" as valid chars - fixed
 TODO:
-- [Feature 1.2.0-3] Added: Rank rule engine (how the fuck do we do this?)
 - [Feature 1.2.0-4] Added: Sync button for Sync common config settings
+- [Feature 1.2.0-3] Added: Rank rule engine (how the fuck do we do this?)
 BUGS:
 - Clicking a Config button resets the current window position
 

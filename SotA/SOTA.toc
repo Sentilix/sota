@@ -1,8 +1,8 @@
 ## Title: SOTA - State of the Art
-## Version: 1.2.0-build-17
+## Version: 1.2.0-build-20
 ## Author: Mimma @ VanillaGaming.org
 ## Interface: 11200
-## SavedVariables: SOTA_CONFIG_UseGuildNotes, SOTA_CONFIG_MinimumBidStrategy, SOTA_CONFIG_DKPStringLength, SOTA_CONFIG_MinimumDKPPenalty, SOTA_CONFIG_BossDKP, SOTA_CONFIG_AuctionTime, SOTA_CONFIG_AuctionExtension, SOTA_CONFIG_EnableOSBidding, SOTA_CONFIG_EnableZoneCheck, SOTA_CONFIG_EnableOnlineCheck, SOTA_CONFIG_DisableDashboard, SOTA_HISTORY_DKP, SOTA_CONFIG_Messages, SOTA_CONFIG_BIDRULES
+## SavedVariables: SOTA_CONFIG_UseGuildNotes, SOTA_CONFIG_MinimumBidStrategy, SOTA_CONFIG_DKPStringLength, SOTA_CONFIG_MinimumDKPPenalty, SOTA_CONFIG_BossDKP, SOTA_CONFIG_AuctionTime, SOTA_CONFIG_AuctionExtension, SOTA_CONFIG_EnableOSBidding, SOTA_CONFIG_EnableZoneCheck, SOTA_CONFIG_EnableOnlineCheck, SOTA_CONFIG_DisableDashboard, SOTA_HISTORY_DKP, SOTA_CONFIG_Messages, SOTA_CONFIG_BIDRULES, SOTA_CONFIG_VersionNumber, SOTA_CONFIG_VersionDate
 
 sota-core.xml
 sota-options.xml
