@@ -367,7 +367,7 @@ function SOTA_VerifyEventMessages()
 		messages = { }
 	end;
 
-	echo("--- Merging messages");
+	--echo("--- Merging messages");
 	for n=1,table.getn(defaultMessages), 1 do
 		local foundMessage = false;
 		for f=1,table.getn(messages), 1 do
@@ -649,6 +649,8 @@ end
 function SOTA_UpdateTextList(frame)
 --	FauxScrollFrame_Update(FrameConfigMessageTableList, SOTA_MAX_MESSAGES, 10, 20);
 	local messages = SOTA_GetConfigurableTextMessages();
+
+	SOTA_VerifyEventMessages();
 
 	FauxScrollFrame_Update(FrameConfigMessageTableList, table.getn(messages), SOTA_MAX_MESSAGES, 20);
 	local offset = FauxScrollFrame_GetOffset(FrameConfigMessageTableList);

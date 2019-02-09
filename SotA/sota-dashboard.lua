@@ -1056,7 +1056,7 @@ end
 --	Since: 1.2.0
 --]]
 function SOTA_RequestUpdateConfigVersion()
-	echo("In SOTA_RequestUpdateConfigVersion");
+--	echo("In SOTA_RequestUpdateConfigVersion");
 	addonEcho("TX_CFGSYNCREQ##");
 end;
 
@@ -1064,7 +1064,7 @@ end;
 --	Return current Cfg version to [sender]
 --]]
 function SOTA_HandleTXConfigSyncRequest(message, sender)
-	echo("In SOTA_HandleTXConfigSyncRequest");
+--	echo("In SOTA_HandleTXConfigSyncRequest");
 
 	if not SOTA_CONFIG_VersionNumber then
 		SOTA_CONFIG_VersionNumber = -1;
@@ -1109,7 +1109,7 @@ function SOTA_OnChatMsgAddon(event, prefix, msg, channel, sender)
 			message = ""
 		end
 		
-		echo(string.format("Incoming: CMD=%s, MSG=%s, Sender=%s, Recipient: %s", cmd, message, sender, recipient));
+		--echo(string.format("Incoming: CMD=%s, MSG=%s, Sender=%s, Recipient: %s", cmd, message, sender, recipient));
 	
 		if cmd == "TX_VERSION" then
 			if prefix == "GuildDKPv1" then

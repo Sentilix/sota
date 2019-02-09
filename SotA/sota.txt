@@ -111,6 +111,8 @@ DONE:
 TODO:
 - [Feature 1.2.0-4] Added: Sync button for Sync common config settings
 - [Feature 1.2.0-3] Added: Rank rule engine (how the fuck do we do this?)
+- [Feature] Queue timer
+- [Feature] See who is in range (a border box? bg colour?)
 BUGS:
 - Clicking a Config button resets the current window position
 

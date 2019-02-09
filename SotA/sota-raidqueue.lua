@@ -123,8 +123,10 @@ end
 
 
 function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
-	local playername, playerrole, playerclass, queueid;
+	local playername, playerrole, playerclass, queueid, playerzone;
 	for n=0, MAX_RAID_QUEUE_SIZE, 1 do
+		playerzone  = "";
+
 		if n == 0 or table.getn(sourcetable) < n then
 			playername	= "";
 			playerrole	= "";
@@ -146,6 +148,7 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 				if guildInfo[5] == 1 then
 					color = SOTA_GetClassColorCodes(playerclass);
 				end
+				playerzone  = guildInfo[6];
 			end
 		end
 		
@@ -154,10 +157,12 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 			local color = { 240, 200, 40 }	
 			getglobal(frame:GetName().."Name"):SetText(caption);
 			getglobal(frame:GetName().."Name"):SetTextColor((color[1]/255), (color[2]/255), (color[3]/255), 255);
+			getglobal(frame:GetName().."Zone"):SetText("Zone");
 			getglobal(frame:GetName().."Rank"):SetText("Queue: ".. table.getn(sourcetable));
 		else
 			getglobal(frame:GetName().."Name"):SetText(playername);
 			getglobal(frame:GetName().."Name"):SetTextColor((color[1]/255), (color[2]/255), (color[3]/255), 255);
+			getglobal(frame:GetName().."Zone"):SetText(playerzone);
 			getglobal(frame:GetName().."Rank"):SetText(playerrank);			
 		end
 		

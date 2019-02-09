@@ -1,6 +1,43 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<Script file="sota-raidqueue.lua" />
 
+	<!-- SotA Big Window (150%) Frame template -->
+	<Frame name="SOTABigFrame" parent="UIParent" toplevel="true" hidden="true" virtual="true">
+		<Size>
+			<!-- <AbsDimension x="384" y="512" /> -->
+			<AbsDimension x="704" y="400" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset x="312" y="-124" />
+			</Anchor>
+		</Anchors>
+		<Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<BackgroundInsets>
+				<AbsInset left="11" right="12" top="12" bottom="11" />
+			</BackgroundInsets>
+			<TileSize>
+				<AbsValue val="32" />
+			</TileSize>
+			<EdgeSize>
+				<AbsValue val="32" />
+			</EdgeSize>
+		</Backdrop>
+		<Scripts>
+			<OnLoad>
+				this:SetMovable(true)
+				this:SetUserPlaced(true)
+				this:RegisterForDrag("LeftButton")
+			</OnLoad>
+			<OnDragStart>
+				this:StartMoving()
+			</OnDragStart>
+			<OnDragStop>
+				this:StopMovingOrSizing()
+			</OnDragStop>
+		</Scripts>
+	</Frame>
+
 	<!-- template for a Player entry in the RaidQueue -->
 	<Button name="SOTA_PlayerTemplate" hidden="true" virtual="true">
 		<Size>
@@ -22,13 +59,22 @@
 					</Anchors>
 					<Color r="1" g="1" b="1" />
 				</FontString>
+				<!-- Location / offline time -->
+				<FontString name="$parentZone" justifyH="LEFT" inherits="GameFontNormal">
+					<Size>
+						<AbsDimension x="154" y="16"/>
+					</Size>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentName"/>
+					</Anchors>
+				</FontString>
 				<!-- Guild rank -->
 				<FontString name="$parentRank" justifyH="RIGHT" inherits="GameFontNormal">
 					<Size>
 						<AbsDimension x="74" y="16"/>
 					</Size>
 					<Anchors>
-						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentName"/>
+						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentZone"/>
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -56,14 +102,14 @@
 	</Button>
 
 	<!--	Raid Queue Frame	-->
-	<Frame name="RaidQueueFrame" inherits="SOTAFrame">
+	<Frame name="RaidQueueFrame" inherits="SOTABigFrame">
 		<Layers>
 			<Layer>
 				<FontString name="$parentTitle" inherits="GameFontNormal" text="SotA Raid Queue">
 					<Anchors>
 						<Anchor point="CENTER">
 							<Offset>
-								<AbsDimension x="-6" y="233"/>
+								<AbsDimension x="-6" y="175"/>
 							</Offset>
 						</Anchor>
 					</Anchors>
@@ -75,12 +121,13 @@
 			<!-- Queued Tanks Frame -->
 			<Frame name="$parentTankList">
 				<Size>
-					<AbsDimension x="163" y="162" />
+					<!-- <AbsDimension x="163" y="162" /> -->
+					<AbsDimension x="315" y="162" />
 				</Size>
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="17" y="-92" />
+							<AbsDimension x="38" y="-60" />
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -96,7 +143,8 @@
 			<!-- Queued melee frame -->
 			<Frame name="$parentMeleeList">
 				<Size>
-					<AbsDimension x="163" y="162" />
+					<!-- <AbsDimension x="163" y="162" /> -->
+					<AbsDimension x="315" y="162" />
 				</Size>
 				<Anchors>
 					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentTankList" />
@@ -113,12 +161,13 @@
 			<!-- Queued ranged frame -->
 			<Frame name="$parentRangedList">
 				<Size>
-					<AbsDimension x="163" y="162" />
+					<!-- <AbsDimension x="163" y="162" /> -->
+					<AbsDimension x="315" y="162" />
 				</Size>
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="17" y="-250" />
+							<AbsDimension x="38" y="-220" />
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -134,7 +183,8 @@
 			<!-- Queued healers frame -->
 			<Frame name="$parentHealerList">
 				<Size>
-					<AbsDimension x="163" y="162" />
+					<!-- <AbsDimension x="163" y="162" /> -->
+					<AbsDimension x="315" y="162" />
 				</Size>
 				<Anchors>
 					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$parentRangedList" />
@@ -152,7 +202,8 @@
 			<Button name="$parentTopCloseButton" inherits="UIPanelCloseButton">
 				<Anchors>
 					<Anchor point="TOPLEFT">
-						<Offset x="322" y="-9" />
+						<!-- <Offset x="322" y="-9" />-->
+						<Offset x="642" y="-9" />
 					</Anchor>
 				</Anchors>
 				<Scripts>
