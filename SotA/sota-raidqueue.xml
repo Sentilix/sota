@@ -5,7 +5,7 @@
 	<Frame name="SOTABigFrame" parent="UIParent" toplevel="true" hidden="true" virtual="true">
 		<Size>
 			<!-- <AbsDimension x="384" y="512" /> -->
-			<AbsDimension x="704" y="400" />
+			<AbsDimension x="660" y="400" />
 		</Size>
 		<Anchors>
 			<Anchor point="TOPLEFT">
@@ -127,7 +127,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="38" y="-60" />
+							<AbsDimension x="16" y="-60" />
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -167,7 +167,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="38" y="-220" />
+							<AbsDimension x="16" y="-220" />
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -203,7 +203,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<!-- <Offset x="322" y="-9" />-->
-						<Offset x="642" y="-9" />
+						<Offset x="620" y="-9" />
 					</Anchor>
 				</Anchors>
 				<Scripts>

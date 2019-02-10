@@ -345,6 +345,22 @@
 					</OnClick>
 				</Scripts>
 			</Button>
+			<!-- Purge Transactions log button -->
+			<Button name="PurgeDKPHistoryButton" inherits="UIPanelButtonTemplate" text="Purge DKP History" hidden="true">
+				<Size>
+					<AbsDimension x="163" y="23" />
+				</Size>
+				<Anchors>
+					<Anchor point="TOPRIGHT">
+						<Offset x="-40" y="-50" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						SOTA_PurgeDKPHistory();
+					</OnClick>
+				</Scripts>
+			</Button>
 			<!-- Log frame buttons: Transaction log -->
 			<Button name="TransactionLogButton" inherits="UIPanelButtonTemplate" text="View Transaction Log" hidden="true">
 				<Size>

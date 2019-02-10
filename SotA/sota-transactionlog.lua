@@ -58,6 +58,7 @@ function SOTA_OpenTransauctionUI()
 	TransactionUIOpen = true;
 	TransactionDetailsOpen = false;
 	DKPHistoryPageOpen = false;
+	PurgeDKPHistoryButton:Hide();
 
 	getglobal("TransactionUIFrameTableList"):Show();
 	getglobal("PrevTransactionPageButton"):Show();
@@ -83,6 +84,7 @@ function SOTA_ViewTransactionLog()
 	TransactionUIOpen = true;
 	TransactionDetailsOpen = false;
 	DKPHistoryPageOpen = false;
+	PurgeDKPHistoryButton:Hide();
 	SOTA_RefreshLogElements();
 	SOTA_UpdatePageControls();
 end;
@@ -92,10 +94,32 @@ function SOTA_ViewDKPHistory()
 	TransactionUIOpen = false;
 	TransactionDetailsOpen = false;
 	DKPHistoryPageOpen = true;
+	PurgeDKPHistoryButton:Show();
 	SOTA_RefreshLogElements();
 	SOTA_UpdatePageControls();
 end;
 
+function SOTA_PurgeDKPHistory()
+
+	StaticPopupDialogs["SOTA_POPUP_PURGE_DKPHISTORY"] = {
+		text = "Are you sure you want to reset the DKP History?",
+		button1 = "Yes",
+		button2 = "No",
+		OnAccept = function() SOTA_PurgeDKPHistoryNow(playername) end,
+		timeout = 0,
+		whileDead = true,
+		hideOnEscape = true,
+		preferredIndex = 3,
+	}
+
+	StaticPopup_Show("SOTA_POPUP_PURGE_DKPHISTORY");
+end;
+
+function SOTA_PurgeDKPHistoryNow()
+	SOTA_HISTORY_DKP = {};
+
+	SOTA_RefreshLogElements();
+end;
 
 function SOTA_OpenTransactionDetails()
 	TransactionUIOpen = false;
@@ -749,6 +773,21 @@ end
 --	Added in 1.1.0
 --]]
 function SOTA_OnDKPHistoryClick(object)
+	StaticPopupDialogs["SOTA_POPUP_TRANSACTION_DETAILS"] = {
+		text = "Display information for transaction in:",
+		button1 = "Raid chat",
+		button2 = "Local",
+		OnAccept = function() SOTA_DisplayDKPDetails(object,true)  end,
+		OnCancel = function() SOTA_DisplayDKPDetails(object,false)  end,
+		timeout = 0,
+		whileDead = true,
+		hideOnEscape = true,
+		preferredIndex = 3,
+	}
+	StaticPopup_Show("SOTA_POPUP_TRANSACTION_DETAILS");	
+end;
+
+function SOTA_DisplayDKPDetails(object,showInRaidChat)
 	local msgID = object:GetID();
 	local timestamp = getglobal(object:GetName().."Time"):GetText();
 	local name = getglobal(object:GetName().."Name"):GetText();
@@ -761,15 +800,30 @@ function SOTA_OnDKPHistoryClick(object)
 				info = entry[6][f];
 				if (info[1] == name) then
 					dkp = 1*info[2];
-					localEcho("----- DKP details -----");
-					localEcho(string.format(" - Player: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.." - Zone: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.."", info[1], entry[7]));
-					localEcho(string.format(" - Date: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", TransactionID: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", entry[1], 1*entry[2]));
-					if dkp < 0 then
-						localEcho(string.format(" - DKP subtracted: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT..", Total players involved: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", math.abs(dkp), table.getn(entry[6])));
+					if showInRaidChat then
+						-- Show details in Raid chat:
+						raidEcho("----- DKP details -----");
+						raidEcho(string.format(" - Player: %s, Zone: %s", info[1], entry[7]));
+						raidEcho(string.format(" - Date/time: %s, TransactionID: %d", entry[1], 1*entry[2]));
+						if dkp < 0 then
+							raidEcho(string.format(" - DKP subtracted: %d, Total players involved: %d", math.abs(dkp), table.getn(entry[6])));
+						else
+							raidEcho(string.format(" - DKP added: %d, Total players involved: %d", math.abs(dkp), table.getn(entry[6])));
+						end;
+						raidEcho(string.format(' - Command: "%s", DKP Officer: %s', string.lower(entry[4]), entry[3]));
 					else
-						localEcho(string.format(" - DKP added: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT..", Total players involved: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", math.abs(dkp), table.getn(entry[6])));
-					end;
-					localEcho(string.format(" - Command: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", Officer: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.."", entry[4], entry[3]));
+						--- Show details in Local chat:
+						localEcho("----- DKP details -----");
+						localEcho(string.format(" - Player: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", Zone: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.."", info[1], entry[7]));
+						localEcho(string.format(" - Date/time: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", TransactionID: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", entry[1], 1*entry[2]));
+						if dkp < 0 then
+							localEcho(string.format(" - DKP subtracted: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT..", Total players involved: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", math.abs(dkp), table.getn(entry[6])));
+						else
+							localEcho(string.format(" - DKP added: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT..", Total players involved: "..SOTA_COLOUR_INTRO.."%d"..SOTA_COLOUR_CHAT.."", math.abs(dkp), table.getn(entry[6])));
+						end;
+						localEcho(string.format(" - Command: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT..", DKP Officer: "..SOTA_COLOUR_INTRO.."%s"..SOTA_COLOUR_CHAT.."", entry[4], entry[3]));
+					end
+
 					return;
 				end;
 			end;
