@@ -364,7 +364,8 @@ function SOTA_VerifyEventMessages()
 	-- Merge default messages into saved messages; in case we added some new event names.
 	local messages = SOTA_GetConfigurableTextMessages();
 	if not messages then
-		messages = { }
+		SOTA_SetConfigurableTextMessages(defaultMessages);
+		return;
 	end;
 
 	--echo("--- Merging messages");

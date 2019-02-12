@@ -43,7 +43,7 @@ local GuildRosterTable			= { }
 local RaidRosterTable			= { }
 local RaidRosterLazyUpdate		= false;
 
--- Table of Queued raid members:			{ Name, QueueID, Role , Class }
+-- Table of Queued raid members:			{ Name, QueueID, Role, Class, Guild rank, Offline time }
 SOTA_RaidQueue					= { }
 
 
@@ -411,6 +411,7 @@ end
 
 function SOTA_OnGuildRosterUpdate()
 	SOTA_RefreshGuildRoster();
+	SOTA_UpdateQueueOfflineTimers();
 
 	if SOTA_CanReadNotes() then
 		if not JobIsRunning then	

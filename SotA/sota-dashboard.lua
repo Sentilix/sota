@@ -465,9 +465,9 @@ end
 --
 --	Timer Functions
 --
+	SOTA_TimerTick = 0;
 local GuildRefreshTimer = 0;
 local EventTime = 0;
-local SOTA_TimerTick = 0;
 local SecondTimer = 0;
 local Secounds = 0;
 
@@ -487,6 +487,7 @@ function SOTA_OnTimer(elapsed)
 
 	if floor(EventTime) < floor(SOTA_TimerTick) then
 		SOTA_CheckAuctionState();
+		SOTA_CheckOfflineStatus();
 		EventTime = SOTA_TimerTick;
 	end
 	
@@ -1181,8 +1182,6 @@ function SOTA_BroadcastTransaction(transaction)
 		end
 	end
 end
-
-
 
 
 

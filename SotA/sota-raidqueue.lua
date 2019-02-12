@@ -74,15 +74,18 @@ function SOTA_RefreshRaidQueue(role)
 	if not RaidQueueUIOpen then
 		return;
 	end
+
 	
 	local raidRoster = SOTA_GetRaidRoster();
 	
 	local playersAlsoInRaid = { }
 	
+	-- Queue info: { Playername / queueId / Role / Class / Guild rank, offlinetime }
 	local tQueue = { }
 	local mQueue = { }
 	local rQueue = { }
 	local hQueue = { }
+
 	for n=1, table.getn(SOTA_RaidQueue), 1 do
 		local playername = SOTA_RaidQueue[n][1];
 		
@@ -123,7 +126,7 @@ end
 
 
 function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
-	local playername, playerrole, playerclass, queueid, playerzone;
+	local playername, playerrole, playerclass, queueid, playerzone, offlinetime;
 	for n=0, MAX_RAID_QUEUE_SIZE, 1 do
 		playerzone  = "";
 
@@ -133,12 +136,14 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 			queueid		= "";
 			playerclass	= "";
 			playerrank	= "";
+			offlinetime	= 0;
 		else
 			playername	= sourcetable[n][1];
 			queueid		= sourcetable[n][2];
 			playerrole	= sourcetable[n][3];
 			playerclass = sourcetable[n][4];
 			playerrank	= sourcetable[n][5];
+			offlinetime	= sourcetable[n][6];
 		end
 
 		local color = { 128, 128, 128 }
@@ -151,7 +156,26 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 				playerzone  = guildInfo[6];
 			end
 		end
-		
+
+		if offlinetime > 0 then
+			-- DC time is the total # of seconds the player has been offline:
+			local dctime = SOTA_TimerTick - offlinetime;
+			local mm = math.floor(dctime / 60);
+			local ss = math.floor(dctime - (60 * mm));
+
+			playerzone = ""..mm;
+			if mm < 10 then
+				playerzone = "0"..playerzone;
+			end
+
+			if ss < 10 then
+				playerzone = "Offline: "..playerzone ..":0"..ss;
+			else
+				playerzone = "Offline: "..playerzone ..":"..ss;
+			end;
+		end;
+
+
 		local frame = getglobal(framename .. (n+1));		
 		if n == 0 then
 			local color = { 240, 200, 40 }	
@@ -171,20 +195,48 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 end
 
 
+function SOTA_UpdateQueueOfflineTimers()
+	for n=1, table.getn(SOTA_RaidQueue), 1 do
+		local playername = SOTA_RaidQueue[n][1];
+	
+		local guildInfo = SOTA_GetGuildPlayerInfo(playername);
+		if guildInfo then
+			-- 0=OFFLINE, 1=ONLINE
+			if guildInfo[5] == 1 then
+				if SOTA_RaidQueue[n][6] > 0 then
+					SOTA_RaidQueue[n][6] = 0;	
+				end;
+			else
+				if SOTA_RaidQueue[n][6] == 0 then
+					SOTA_RaidQueue[n][6] = SOTA_TimerTick;	
+				end;
+			end
+		end
+	end
+end;
+
+
+function SOTA_CheckOfflineStatus()
+	if RaidQueueUIOpen then
+		SOTA_RefreshRaidQueue(nil);
+	end;
+end
+
+
 --[[
 --	Invite all of one role type (e.g. all Tanks)
 --]]
 function SOTA_InviteQueuedPlayerGroup(rolename, roleidentifier)
 
 	StaticPopupDialogs["SOTA_POPUP_INVITE_PLAYER"] = {
-		text = string.format("Do you want to invite all %s into the raid?", rolename),
+		text = string.format("Do you want to invite all %s players ?", rolename),
 		button1 = "Yes",
 		button2 = "No",
 		OnAccept = function() SOTA_InviteQueuedPlayerGroupNow(roleidentifier)  end,
 		timeout = 0,
 		whileDead = true,
 		hideOnEscape = true,
-		preferredIndex = 3,  -- avoid some UI taint, see http://www.wowace.com/announcements/how-to-avoid-some-ui-taint/
+		preferredIndex = 3,
 	}
 	
 	StaticPopup_Show("SOTA_POPUP_INVITE_PLAYER");
@@ -379,8 +431,8 @@ function SOTA_AddToRaidQueue(playername, playerrole, silentmode)
 	-- Remove if already queued - that way you can change role.
 	SOTA_RemoveFromRaidQueue(playername, silentmode);
 
-	-- Playername / queueId / Role / Class / Guild rank
-	SOTA_RaidQueue[table.getn(SOTA_RaidQueue) + 1] = { playername, QueueID, playerrole, playerInfo[3], playerInfo[4] };
+	-- Playername / queueId / Role / Class / Guild rank / Offline Time (0=ONLINE)
+	SOTA_RaidQueue[table.getn(SOTA_RaidQueue) + 1] = { playername, QueueID, playerrole, playerInfo[3], playerInfo[4], 0 };
 	QueueID = QueueID + 1;
 
 	if not silentmode then
@@ -504,7 +556,21 @@ function SOTA_OnQueuedPlayerClick(object, buttonname)
 	-- Promote player to Master if none is currently set
 	SOTA_CheckForMaster();	
 
+	--	Header was clicked; invite all players for the current role:
+	if getglobal(object:GetName().."Zone"):GetText() == "Zone" then
+		if playername == "Tanks" then
+			SOTA_InviteQueuedPlayerGroup(playername, "tank");
+		elseif playername == "Melee" then
+			SOTA_InviteQueuedPlayerGroup(playername, "melee");
+		elseif playername == "Ranged" then
+			SOTA_InviteQueuedPlayerGroup(playername, "ranged");
+		elseif playername == "Healers" then
+			SOTA_InviteQueuedPlayerGroup(playername, "healer");
+		end
+		return;
+	end;
 
+	-- Single player removal / invitation:
 	if buttonname == "RightButton" then
 		StaticPopupDialogs["SOTA_POPUP_REMOVE_PLAYER"] = {
 			text = string.format("Remove %s from the raid queue?", playername),
@@ -527,21 +593,6 @@ function SOTA_OnQueuedPlayerClick(object, buttonname)
 
 		-- Invite player if he is online:
 		if (playerinfo[5] == 1) then
-			local playerrank = getglobal(object:GetName().."Rank"):GetText();
-			if (string.len(playerrank) > 7) and (string.sub(playerrank, 1, 7) == "Queue: ") then
-				if playername == "Tanks" then
-					SOTA_InviteQueuedPlayerGroup(playername, "tank");
-				elseif playername == "Melee" then
-					SOTA_InviteQueuedPlayerGroup(playername, "melee");
-				elseif playername == "Ranged" then
-					SOTA_InviteQueuedPlayerGroup(playername, "ranged");
-				elseif playername == "Healers" then
-					SOTA_InviteQueuedPlayerGroup(playername, "healer");
-				end
-				
-				return;
-			end
-			
 			SOTA_InviteQueuedPlayer(playername);	
 		end;
 	end
