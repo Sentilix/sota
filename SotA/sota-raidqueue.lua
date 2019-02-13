@@ -161,18 +161,12 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 			-- DC time is the total # of seconds the player has been offline:
 			local dctime = SOTA_TimerTick - offlinetime;
 			local mm = math.floor(dctime / 60);
-			local ss = math.floor(dctime - (60 * mm));
 
-			playerzone = ""..mm;
-			if mm < 10 then
-				playerzone = "0"..playerzone;
-			end
-
-			if ss < 10 then
-				playerzone = "Offline: "..playerzone ..":0"..ss;
+			if mm == 1 then
+				playerzone = "Offline: "..mm.." min.";
 			else
-				playerzone = "Offline: "..playerzone ..":"..ss;
-			end;
+				playerzone = "Offline: "..mm.." mins.";
+			end;			
 		end;
 
 
