@@ -168,9 +168,10 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 			local dctime = SOTA_TimerTick - offlinetime;
 			local mm = math.floor(dctime / 60);
 
-			playerzone = "Offline "..mm.." minute";
-			if mm ~= 1 then
-				playerzone = playerzone.."s";
+			if mm == 1 then
+				playerzone = "OFFLINE ("..mm.." minute)";
+			else
+				playerzone = "OFFLINE ("..mm.." minutes)";
 			end;			
 		end;
 
@@ -371,39 +372,62 @@ end
 
 
 function SOTA_AddToRaidQueueByName(args)
-	if not SOTA_IsMaster() then
-		return;
-	end
-
 	if args then
 		local _, _, playername, playerrole = string.find(args, "(%S+) (%S+)")		
-		if not playername or not playerrole then	
-			localEcho("Syntax: /sota addqueue <playername> <playerrole>");
-			
-		else
-			if SOTA_AddToRaidQueue(playername, playerrole, true) then
+
+		if playername and playerrole then	
+			if SOTA_AddToRaidQueue(playername, playerrole, false, true) then
 				SOTA_BroadcastJoinQueue(playername, playerrole);
 			end
+			return;
 		end
 	end
+
+	localEcho("Syntax: /sota addqueue <player> <role>");
 end
 
 
 --[[
 --	Add a player to the raid queue
+--	byProxy means the player was added by the current player, 
+--	so whispers should be sent to localEcho instead.
 --	Since: 0.1.1
 --]]
-function SOTA_AddToRaidQueue(playername, playerrole, silentmode)
+function SOTA_AddToRaidQueue(playername, playerrole, silentmode, byProxy)
 	if not silentmode then
 		silentmode = false;
 	end
+	if not byProxy then
+		byProxy = false;
+	end
+
 	
 	playername = SOTA_UCFirst(playername);
+	playerrole = string.lower(playerrole);
+
+	if	playerrole ~= "tank" and 
+		playerrole ~= "melee" and 
+		playerrole ~= "ranged" and 
+		playerrole ~= "healer" then
+		if not silentmode then	
+			if byProxy then
+				localEcho("Valid roles are tank, melee, ranged or healer.");
+			else
+				SOTA_whisper(playername, "Valid roles are tank, melee, ranged or healer.");
+			end;
+		end
+		return false;
+	end;
+
 
 	local playerInfo = SOTA_GetGuildPlayerInfo(playername);
 	if not playerInfo then
-		if not silentmode then	
-			SOTA_whisper(playername, "You need to be in the guild to join the raid queue!");
+		if not silentmode then
+			if byProxy then
+				localEcho(string.format("%s need to be in the guild to join the raid queue!", playername));
+			else
+				SOTA_whisper(playername, "You need to be in the guild to join the raid queue!");
+			end;
 		end
 		return false;
 	end
@@ -414,7 +438,11 @@ function SOTA_AddToRaidQueue(playername, playerrole, silentmode)
 	for n=1, table.getn(raidRoster), 1 do
 		if raidRoster[n][1] == playername then
 			if not silentmode then	
-				SOTA_whisper(playername, "You are already in the raid.");
+				if byProxy then
+					localEcho(string.format("%s is already in the raid.", playername));
+				else
+					SOTA_whisper(playername, "You are already in the raid.");
+				end;
 			end
 			return false;
 		end
@@ -425,7 +453,11 @@ function SOTA_AddToRaidQueue(playername, playerrole, silentmode)
 		local rq = SOTA_RaidQueue[n];
 		if rq[1] == playername and rq[3] == playerrole then
 			if not silentmode then
-				SOTA_whisper(playername, string.format("You are already queued as %s.", playerrole));
+				if byProxy then
+					localEcho(string.format("%s is already queued as %s.", playername, playerrole));
+				else
+					SOTA_whisper(playername, string.format("You are already queued as %s.", playerrole));
+				end;
 			end
 			return false;
 		end
@@ -440,7 +472,12 @@ function SOTA_AddToRaidQueue(playername, playerrole, silentmode)
 
 	if not silentmode then
 		SOTA_BroadcastJoinQueue(playername, playerrole);
-		SOTA_whisper(playername, string.format("You are now queued as %s - Queue number: %d", SOTA_UCFirst(playerrole), table.getn(SOTA_RaidQueue)));
+		
+		if byProxy then
+			localEcho(string.format("%s is now queued as %s - Queue number: %d", playername, SOTA_UCFirst(playerrole), table.getn(SOTA_RaidQueue)));
+		else
+			SOTA_whisper(playername, string.format("You are now queued as %s - Queue number: %d", SOTA_UCFirst(playerrole), table.getn(SOTA_RaidQueue)));
+		end;
 	end
 
 	SOTA_RefreshRaidQueue();

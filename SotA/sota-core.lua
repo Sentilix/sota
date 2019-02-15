@@ -151,7 +151,6 @@ SOTA_HISTORY_DKP				= { }	-- { timestamp, tid, author, description, state, { nam
 
 -- Pane 4: (Messages)
 -- Pane 5: (Bid rules)
-SOTA_CONFIG_BIDRULES			= { };	-- Array of Rules + Texts
 
 
 

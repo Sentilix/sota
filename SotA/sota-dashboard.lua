@@ -249,6 +249,8 @@ function SOTA_HandleSOTACommand(msg)
 				SOTA_RequestMaster();
 			end
 			return SOTA_AddToRaidQueueByName(arg);
+		else
+			localEcho("You must be promoted for adding people to the raid queue.");
 		end
 		return;
 	end
@@ -1301,9 +1303,10 @@ function SOTA_OnChatWhisper(event, message, sender)
 	end
 end	
 
+
 function SOTA_OnEvent(event, arg1, arg2, arg3, arg4, arg5)
 	if (event == "ADDON_LOADED") then
-		if arg1 == "SOTA" then
+		if arg1 == SOTA_TITLE then
 		    SOTA_InitializeConfigSettings();
 		end
 	elseif (event == "CHAT_MSG_GUILD") then
