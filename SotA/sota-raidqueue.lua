@@ -126,6 +126,10 @@ end
 
 
 function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
+	local headColor		= { 240, 240, 240 };
+	local textColor		= { 240, 200, 40 }
+	local offlineColor	= { 128, 128, 128 };
+
 	local playername, playerrole, playerclass, queueid, playerzone, offlinetime;
 	for n=0, MAX_RAID_QUEUE_SIZE, 1 do
 		playerzone  = "";
@@ -146,42 +150,47 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 			offlinetime	= sourcetable[n][6];
 		end
 
-		local color = { 128, 128, 128 }
+		local nameColor = offlineColor;
 		if not(playername == "") then
 			local guildInfo = SOTA_GetGuildPlayerInfo(playername);
 			if guildInfo then
 				if guildInfo[5] == 1 then
-					color = SOTA_GetClassColorCodes(playerclass);
+					nameColor = SOTA_GetClassColorCodes(playerclass);
 				end
 				playerzone  = guildInfo[6];
 			end
 		end
 
+		local zoneColor = textColor;
 		if offlinetime > 0 then
+			zoneColor = offlineColor;
 			-- DC time is the total # of seconds the player has been offline:
 			local dctime = SOTA_TimerTick - offlinetime;
 			local mm = math.floor(dctime / 60);
 
-			if mm == 1 then
-				playerzone = "Offline: "..mm.." min.";
-			else
-				playerzone = "Offline: "..mm.." mins.";
+			playerzone = "Offline "..mm.." minute";
+			if mm ~= 1 then
+				playerzone = playerzone.."s";
 			end;			
 		end;
 
 
 		local frame = getglobal(framename .. (n+1));		
 		if n == 0 then
-			local color = { 240, 200, 40 }	
+			local color = headColor;
 			getglobal(frame:GetName().."Name"):SetText(caption);
-			getglobal(frame:GetName().."Name"):SetTextColor((color[1]/255), (color[2]/255), (color[3]/255), 255);
+			getglobal(frame:GetName().."Name"):SetTextColor((headColor[1]/255), (headColor[2]/255), (headColor[3]/255), 255);
 			getglobal(frame:GetName().."Zone"):SetText("Zone");
+			getglobal(frame:GetName().."Zone"):SetTextColor((headColor[1]/255), (headColor[2]/255), (headColor[3]/255), 255);
 			getglobal(frame:GetName().."Rank"):SetText("Queue: ".. table.getn(sourcetable));
+			getglobal(frame:GetName().."Rank"):SetTextColor((headColor[1]/255), (headColor[2]/255), (headColor[3]/255), 255);
 		else
 			getglobal(frame:GetName().."Name"):SetText(playername);
-			getglobal(frame:GetName().."Name"):SetTextColor((color[1]/255), (color[2]/255), (color[3]/255), 255);
+			getglobal(frame:GetName().."Name"):SetTextColor((nameColor[1]/255), (nameColor[2]/255), (nameColor[3]/255), 255);
 			getglobal(frame:GetName().."Zone"):SetText(playerzone);
+			getglobal(frame:GetName().."Zone"):SetTextColor((zoneColor[1]/255), (zoneColor[2]/255), (zoneColor[3]/255), 255);
 			getglobal(frame:GetName().."Rank"):SetText(playerrank);			
+			getglobal(frame:GetName().."Rank"):SetTextColor((textColor[1]/255), (textColor[2]/255), (textColor[3]/255), 255);
 		end
 		
 		frame:Show();
