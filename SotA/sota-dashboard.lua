@@ -992,6 +992,14 @@ function SOTA_HandleTXSyncRaidQueue(message, sender)
 		local name = SOTA_RaidQueue[n][1];
 		local role = SOTA_RaidQueue[n][3];
 		local clss = SOTA_RaidQueue[n][4];
+		
+		-- TODO:
+		--	OFFLINE state is not broadcasted. That is not a problem wince the
+		--	receiving client will set this.
+		--	However, the offline timer will be wrong for that client, since it
+		--	will start from 0 (seconds).
+		--	We could add the offline timer, but this will break compatibility with
+		--	older (pre 1.2) SOTA clients.
 
 		local response = name.."/"..role.."/"..clss;
 		addonEcho("RX_SYNCRAIDQ#"..response.."#"..sender);

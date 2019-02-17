@@ -169,10 +169,14 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 			local mm = math.floor(dctime / 60);
 
 			if mm == 1 then
-				playerzone = "OFFLINE ("..mm.." minute)";
+				playerzone = "OFFLINE (1 minute)";
+			elseif mm < 60 then
+					playerzone = "OFFLINE ("..mm.." minutes)";
+			elseif mm == 60 then
+				playerzone = "OFFLINE (1 hour)";
 			else
-				playerzone = "OFFLINE ("..mm.." minutes)";
-			end;			
+				playerzone = "OFFLINE (".. math.floor(mm / 60) .." hours)";
+			end;
 		end;
 
 
