@@ -175,7 +175,8 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 			elseif mm == 60 then
 				playerzone = "OFFLINE (1 hour)";
 			else
-				playerzone = "OFFLINE (".. math.floor(mm / 60) .." hours)";
+				local hh = math.floor(mm/60)
+				playerzone = "OFFLINE (".. hh .." hours)";
 			end;
 		end;
 
@@ -195,7 +196,7 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 			getglobal(frame:GetName().."Zone"):SetText(playerzone);
 			getglobal(frame:GetName().."Zone"):SetTextColor((zoneColor[1]/255), (zoneColor[2]/255), (zoneColor[3]/255), 255);
 			getglobal(frame:GetName().."Rank"):SetText(playerrank);			
-			getglobal(frame:GetName().."Rank"):SetTextColor((textColor[1]/255), (textColor[2]/255), (textColor[3]/255), 255);
+			getglobal(frame:GetName().."Rank"):SetTextColor((zoneColor[1]/255), (zoneColor[2]/255), (zoneColor[3]/255), 255);
 		end
 		
 		frame:Show();
@@ -426,6 +427,13 @@ function SOTA_AddToRaidQueue(playername, playerrole, silentmode, byProxy)
 
 	local playerInfo = SOTA_GetGuildPlayerInfo(playername);
 	if not playerInfo then
+		-- We end here in two situations:
+		-- * If player is not in the guild, or
+		-- * Player is offline, and receiver have turned SHOW OFFLINE MEMBERS off.
+		-- However, there is a third way getting here: logging in and joining queue 
+		-- straight away; that whay the guild roster data is not yet updated.
+		--
+		-- Impact of skipping offliners is that these are not synchronized.
 		if not silentmode then
 			if byProxy then
 				localEcho(string.format("%s need to be in the guild to join the raid queue!", playername));
