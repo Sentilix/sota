@@ -167,15 +167,15 @@ function SOTA_UpdateRaidQueueTable(caption, framename, sourcetable)
 			-- DC time is the total # of seconds the player has been offline:
 			local dctime = SOTA_TimerTick - offlinetime;
 			local mm = math.floor(dctime / 60);
+			local hh = math.floor(mm / 60);
 
 			if mm == 1 then
 				playerzone = "OFFLINE (1 minute)";
 			elseif mm < 60 then
 					playerzone = "OFFLINE ("..mm.." minutes)";
-			elseif mm == 60 then
+			elseif hh == 1 then
 				playerzone = "OFFLINE (1 hour)";
 			else
-				local hh = math.floor(mm/60)
 				playerzone = "OFFLINE (".. hh .." hours)";
 			end;
 		end;
@@ -486,9 +486,9 @@ function SOTA_AddToRaidQueue(playername, playerrole, silentmode, byProxy)
 		SOTA_BroadcastJoinQueue(playername, playerrole);
 		
 		if byProxy then
-			localEcho(string.format("%s is now queued as %s - Queue number: %d", playername, SOTA_UCFirst(playerrole), table.getn(SOTA_RaidQueue)));
+			localEcho(string.format("%s is now queued as %s - Characters in queue: %d", playername, SOTA_UCFirst(playerrole), table.getn(SOTA_RaidQueue)));
 		else
-			SOTA_whisper(playername, string.format("You are now queued as %s - Queue number: %d", SOTA_UCFirst(playerrole), table.getn(SOTA_RaidQueue)));
+			SOTA_whisper(playername, string.format("You are now queued as %s - Characters in queue: %d", SOTA_UCFirst(playerrole), table.getn(SOTA_RaidQueue)));
 		end;
 	end
 

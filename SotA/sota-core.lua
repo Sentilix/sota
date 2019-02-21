@@ -472,7 +472,7 @@ function SOTA_RefreshGuildRoster()
 		end
 		
 		local _, _, dkp = string.find(note, "<(-?%d*)>")
-		if not dkp then
+		if not dkp or not tonumber(dkp) then
 			dkp = 0;
 		end
 		
