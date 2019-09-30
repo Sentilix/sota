@@ -1,6 +1,10 @@
 # SotA - State of the Art
 ... The next step in DKP!
 
+__Note: This version is for World of Warcraft 1.12.1!__
+
+If you are looking for a Wow Classic version, see the sota-classic addon instead.
+
 
 Contents
 1. What is Sota?
